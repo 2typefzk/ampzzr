@@ -1,0 +1,106 @@
+/* ============================================================
+   AMPLI — Auth styling (login + welcome modal)
+   ============================================================ */
+
+/* ---------- Login ---------- */
+.lg-wrap{position:fixed;inset:0;z-index:600;display:flex;background:var(--ink-900);}
+
+/* left brand panel */
+.lg-brand{
+  position:relative;width:46%;max-width:680px;flex:none;overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 12% 8%, color-mix(in srgb,var(--orange) 30%, transparent), transparent 60%),
+    linear-gradient(160deg, var(--ink-850), var(--ink-950));
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;padding:46px 48px;
+}
+.lg-brand-top{display:flex;align-items:baseline;gap:10px;position:relative;z-index:2;}
+/* "by Fuzzr" on the login brand panel: white in dark, darker ink in light */
+.lg-brand-top .tb-by{color:#fff;}
+[data-theme="light"] .lg-brand-top .tb-by{color:#2c2036;}
+.lg-wordmark{font-size:30px;}
+.lg-brand-mid{position:relative;z-index:2;margin:auto 0;}
+.lg-headline{font-size:54px;color:var(--cream);margin:0;}
+.lg-headline .lt{font-weight:300;}
+.lg-accent{color:var(--orange);}
+.lg-tagline{margin:20px 0 0;font-size:16px;line-height:1.55;color:var(--tx-muted);max-width:420px;font-style:italic;}
+.lg-brand-art{
+  position:relative;z-index:1;display:block;flex:1;min-height:0;width:100%;
+  object-fit:contain;object-position:center;margin:18px 0;
+  filter:drop-shadow(0 24px 50px rgba(8,3,18,0.45));pointer-events:none;
+}
+.lg-brand-foot{position:relative;z-index:2;margin-top:28px;font-size:12px;color:var(--tx-faint);font-stretch:92%;}
+
+/* right form */
+.lg-form-side{flex:1;display:flex;align-items:center;justify-content:center;padding:40px;overflow-y:auto;}
+.lg-card{width:100%;max-width:392px;display:flex;flex-direction:column;}
+.lg-eyebrow{margin-bottom:12px;}
+.lg-title{font-family:var(--display);font-weight:800;font-stretch:80%;text-transform:uppercase;font-size:34px;color:var(--cream);margin:0;letter-spacing:-0.01em;}
+.lg-sub{margin:10px 0 26px;color:var(--tx-muted);font-size:14.5px;font-style:italic;}
+.lg-google{
+  display:flex;align-items:center;justify-content:center;gap:11px;width:100%;height:50px;
+  background:var(--cream);color:#1a1320;border:none;border-radius:var(--r-sm);cursor:pointer;
+  font-family:var(--display);font-weight:600;font-stretch:92%;font-size:15px;white-space:nowrap;
+  transition:transform .12s var(--ease),box-shadow .18s,filter .15s;
+}
+.lg-google:hover{filter:brightness(1.04);box-shadow:0 6px 18px rgba(8,3,18,0.3);}
+.lg-google:active{transform:translateY(1px);}
+.lg-divider{display:flex;align-items:center;gap:14px;margin:22px 0;color:var(--tx-faint);font-size:12px;font-stretch:92%;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;}
+.lg-divider::before,.lg-divider::after{content:"";flex:1;height:1px;background:var(--line);}
+.lg-field-label{font-size:12px;font-weight:700;font-stretch:90%;text-transform:uppercase;letter-spacing:0.08em;color:var(--cream-dim);margin-bottom:8px;}
+.lg-input{height:48px;margin-bottom:18px;}
+.lg-pass{position:relative;}
+.lg-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0 22px;white-space:nowrap;}
+.lg-check{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--tx-muted);cursor:pointer;font-stretch:92%;}
+.lg-check input{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
+.lg-link{background:none;border:none;cursor:pointer;color:var(--orange);font-family:var(--display);font-weight:600;font-stretch:92%;font-size:13px;padding:0;}
+.lg-link:hover{text-decoration:underline;}
+.lg-submit{width:100%;margin-top:2px;}
+.lg-foot{text-align:center;margin:22px 0 0;font-size:13px;color:var(--tx-muted);white-space:nowrap;}
+.lg-foot .lg-link{font-size:13px;}
+
+@media(max-width:880px){
+  .lg-brand{display:none;}
+  .lg-form-side{flex:1;}
+}
+
+/* ---------- Welcome modal ---------- */
+.wm-scrim{
+  position:fixed;inset:0;z-index:650;display:grid;place-items:center;padding:24px;
+  background:rgba(10,4,24,0.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  animation:wmScrimIn .35s var(--ease);
+}
+@keyframes wmScrimIn{from{background:rgba(10,4,24,0);}}
+.wm-box{
+  position:relative;width:100%;max-width:480px;background:var(--ink-800);
+  border:1px solid var(--line-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-lg);
+  padding:34px 36px 32px;text-align:center;
+  animation:wmBoxIn .42s var(--ease);
+}
+@keyframes wmBoxIn{from{transform:translateY(16px);}}
+.wm-close{position:absolute;top:16px;right:16px;}
+.wm-art-wrap{
+  width:256px;height:256px;margin:0 auto 22px;border-radius:var(--r-xl);
+  background:var(--ink-750);overflow:hidden;
+}
+.wm-art{width:100%;height:100%;object-fit:cover;display:block;}
+.wm-eyebrow{margin-bottom:12px;}
+.wm-title{font-size:40px;color:var(--cream);margin:0;}
+.wm-sub{margin:14px 0 26px;color:var(--tx-muted);font-size:15px;line-height:1.6;}
+.wm-actions{display:flex;flex-direction:column;gap:11px;}
+.wm-actions .btn{width:100%;}
+.wm-tour{justify-content:space-between;}
+
+/* ---------- Coachmark tour ---------- */
+.tour-scrim{position:fixed;inset:0;z-index:660;pointer-events:auto;}
+.tour-spot{position:fixed;z-index:661;border-radius:14px;box-shadow:0 0 0 4px var(--orange),0 0 0 9999px rgba(10,4,24,0.72);transition:all .3s var(--ease);pointer-events:none;}
+.tour-pop{position:fixed;z-index:662;width:300px;background:var(--ink-800);border:1px solid var(--line-strong);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:18px 18px 16px;transition:all .3s var(--ease);}
+.tour-step{font-size:11px;font-weight:700;font-stretch:90%;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:8px;}
+.tour-title{font-family:var(--display);font-weight:700;font-stretch:88%;font-size:18px;color:var(--cream);margin:0 0 7px;}
+.tour-text{font-size:13.5px;line-height:1.5;color:var(--tx-muted);margin:0 0 16px;}
+.tour-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.tour-dots{display:flex;gap:6px;}
+.tour-dot{width:7px;height:7px;border-radius:50%;background:var(--line-strong);}
+.tour-dot.on{background:var(--orange);}
+.tour-skip{background:none;border:none;color:var(--tx-faint);cursor:pointer;font-family:var(--display);font-weight:600;font-stretch:90%;font-size:12.5px;}
+.tour-skip:hover{color:var(--cream);}

@@ -1,0 +1,290 @@
+/* ============================================================
+   AMPLI — Design tokens & base
+   Brand DNA from fuzzr.br/ampli: deep aubergine purple,
+   vibrant orange, warm cream. Heavy condensed display type.
+   ============================================================ */
+
+:root{
+  /* --- Theme primitives (flip in light mode) --- */
+  --tint:237,227,194;   /* cream rgb — subtle borders, fills, hovers, wave bars */
+  --shade:12,5,24;      /* near-black rgb — inset surfaces, shadows */
+  --overlay:rgba(33,16,56,0.86);
+
+  /* --- Purple ink scale (backgrounds & panels) --- */
+  --ink-950:#180c28;
+  --ink-900:#211038;   /* app background */
+  --ink-850:#291545;
+  --ink-800:#311a50;   /* panels */
+  --ink-750:#3a2160;   /* elevated cards */
+  --ink-700:#46296f;   /* hover / raised */
+  --ink-650:#553584;
+
+  /* --- Orange / accent (everything derives from --orange) --- */
+  --orange:#e8602a;
+  --orange-bright:color-mix(in oklab, var(--orange), white 16%);
+  --orange-press:color-mix(in oklab, var(--orange), black 20%);
+  --orange-soft:color-mix(in srgb, var(--orange) 14%, transparent);
+  --orange-softer:color-mix(in srgb, var(--orange) 8%, transparent);
+
+  /* --- Cream (headings / light text) --- */
+  --cream:#ede3c2;
+  --cream-dim:#c9bd99;
+
+  /* --- Text --- */
+  --tx:#f3ecd9;
+  --tx-muted:#a896c0;
+  --tx-faint:#7d6c98;
+
+  /* --- Lines --- */
+  --line:rgba(var(--tint),0.13);
+  --line-strong:rgba(var(--tint),0.22);
+  --line-orange:color-mix(in srgb, var(--orange) 45%, transparent);
+
+  /* --- Radii --- */
+  --r-sm:7px;
+  --r:11px;
+  --r-lg:18px;
+  --r-xl:24px;
+
+  /* --- Shadow --- */
+  --shadow-sm:0 2px 8px rgba(var(--shade),0.35);
+  --shadow:0 14px 40px rgba(var(--shade),0.5);
+  --shadow-lg:0 30px 80px rgba(8,3,18,0.62);
+
+  /* --- Type --- */
+  --display:"Archivo",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:var(--display);
+  background:var(--ink-900);
+  color:var(--tx);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow:hidden;
+}
+#root{height:100vh;width:100vw;}
+
+::selection{background:var(--orange);color:#fff;}
+
+/* scrollbars */
+*::-webkit-scrollbar{width:10px;height:10px;}
+*::-webkit-scrollbar-track{background:transparent;}
+*::-webkit-scrollbar-thumb{background:rgba(var(--tint),0.16);border-radius:20px;border:2px solid transparent;background-clip:padding-box;}
+*::-webkit-scrollbar-thumb:hover{background:rgba(var(--tint),0.28);background-clip:padding-box;}
+
+/* ---------- Type primitives ---------- */
+.u-label{
+  font-weight:700;
+  font-stretch:88%;
+  text-transform:uppercase;
+  letter-spacing:0.13em;
+  font-size:11px;
+  color:var(--orange);
+}
+.u-eyebrow{
+  font-weight:600;
+  font-stretch:90%;
+  text-transform:uppercase;
+  letter-spacing:0.18em;
+  font-size:11px;
+  color:var(--tx-faint);
+}
+.display{
+  font-weight:800;
+  font-stretch:75%;
+  text-transform:uppercase;
+  letter-spacing:-0.01em;
+  line-height:0.92;
+}
+.display .lt{font-weight:300;}
+
+/* ---------- Buttons ---------- */
+.btn{
+  font-family:var(--display);
+  font-weight:700;
+  font-stretch:90%;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-size:13px;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  border:none;border-radius:var(--r-sm);
+  padding:0 18px;height:42px;
+  cursor:pointer;
+  transition:background .18s var(--ease),transform .12s var(--ease),box-shadow .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease),opacity .18s;
+  white-space:nowrap;
+  user-select:none;
+}
+.btn:active{transform:translateY(1px) scale(0.99);}
+.btn svg{width:17px;height:17px;flex:none;}
+
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 14px color-mix(in srgb, var(--orange) 32%, transparent);}
+.btn-primary:hover{background:var(--orange-bright);box-shadow:0 6px 20px color-mix(in srgb, var(--orange) 45%, transparent);}
+
+.btn-ghost{background:transparent;color:var(--cream);border:1px solid var(--line-strong);}
+.btn-ghost:hover{background:rgba(var(--tint),0.07);border-color:var(--cream-dim);color:var(--cream);}
+
+.btn-subtle{background:rgba(var(--tint),0.07);color:var(--cream);}
+.btn-subtle:hover{background:rgba(var(--tint),0.12);}
+
+.btn[disabled]{opacity:0.38;cursor:not-allowed;box-shadow:none;}
+.btn[disabled]:active{transform:none;}
+
+.btn-lg{height:52px;font-size:14px;padding:0 26px;}
+.btn-sm{height:34px;font-size:11.5px;padding:0 13px;}
+
+/* icon-only button */
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:9px;
+  border:1px solid var(--line);
+  background:transparent;color:var(--cream);
+  cursor:pointer;flex:none;
+  transition:background .15s,border-color .15s,color .15s,transform .12s;
+}
+.icon-btn:hover{background:rgba(var(--tint),0.08);border-color:var(--line-strong);}
+.icon-btn:active{transform:scale(0.93);}
+.icon-btn svg{width:17px;height:17px;}
+.icon-btn.accent{color:var(--orange);border-color:var(--line-orange);}
+.icon-btn.accent:hover{background:var(--orange-soft);}
+
+/* ---------- Inputs ---------- */
+.field{
+  font-family:var(--display);
+  background:rgba(var(--shade),0.4);
+  border:1px solid var(--line);
+  color:var(--tx);
+  border-radius:var(--r-sm);
+  height:42px;padding:0 14px;
+  font-size:14.5px;
+  width:100%;
+  transition:border-color .15s,background .15s,box-shadow .15s;
+}
+.field::placeholder{color:var(--tx-faint);}
+.field:focus{outline:none;border-color:var(--line-orange);box-shadow:0 0 0 3px var(--orange-softer);background:rgba(var(--shade),0.55);}
+
+/* ---------- Tag / chip ---------- */
+.tag{
+  display:inline-flex;align-items:center;gap:7px;
+  height:28px;padding:0 11px;border-radius:999px;
+  font-weight:600;font-stretch:92%;font-size:11.5px;letter-spacing:0.04em;
+  background:rgba(var(--tint),0.08);color:var(--cream-dim);
+  border:1px solid var(--line);
+  white-space:nowrap;
+}
+.tag.orange{background:var(--orange-soft);color:var(--orange);border-color:var(--line-orange);}
+.tag .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;}
+
+/* model color dots */
+.mdot{width:8px;height:8px;border-radius:50%;flex:none;}
+
+/* hairline */
+.hr{height:1px;background:var(--line);border:none;margin:0;}
+
+/* fade/slide entrance */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:none;}}
+/* Content is ALWAYS visible (opacity never animated) so screenshots,
+   print and background tabs never show blank. Entrance is a subtle
+   transform-only rise that plays once the page is rendering. */
+@keyframes riseUp{from{transform:translateY(16px);}to{transform:none;}}
+.anim-up,.anim-in{opacity:1;}
+.is-loaded .anim-up{animation:riseUp .5s var(--ease) both;}
+@media (prefers-reduced-motion: reduce){
+  .is-loaded .anim-up{animation:none;}
+}
+
+/* diagonal brand accent line (decorative, subtle) */
+.diag-bg{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0.5;
+}
+.diag-bg::before{
+  content:"";position:absolute;width:160%;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);
+  top:38%;left:-30%;transform:rotate(-8deg);
+}
+.diag-bg::after{
+  content:"";position:absolute;width:160%;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);
+  top:72%;left:-30%;transform:rotate(-8deg);
+}
+
+.no-select{user-select:none;}
+
+/* While theme/bg/accent is swapping, kill transitions so the change is
+   instant — avoids a paused-clock transition freezing on the old color
+   (offscreen tabs / capture) and any cross-theme color smearing. */
+.theme-switching *,.theme-switching *::before,.theme-switching *::after{transition:none !important;}
+
+/* ===== Tweakable themes (background tone) ===== */
+[data-bg="grafite"]{
+  --ink-950:#141518; --ink-900:#1b1c20; --ink-850:#212329; --ink-800:#26282f;
+  --ink-750:#2e3038; --ink-700:#383b45; --ink-650:#464a56;
+  --tx-muted:#9aa1ad; --tx-faint:#6b727e;
+  --line:rgba(var(--tint),0.10); --line-strong:rgba(var(--tint),0.18);
+}
+[data-bg="petroleo"]{
+  --ink-950:#0b1417; --ink-900:#0f1d22; --ink-850:#14252b; --ink-800:#192e35;
+  --ink-750:#203a42; --ink-700:#294852; --ink-650:#356069;
+  --tx-muted:#8da8ad; --tx-faint:#5d7b81;
+}
+
+/* ===== Tweakable corner radius ===== */
+[data-radius="reto"]{--r-sm:3px; --r:4px; --r-lg:7px; --r-xl:9px;}
+[data-radius="suave"]{--r-sm:12px; --r:18px; --r-lg:26px; --r-xl:34px;}
+
+/* ===== LIGHT MODE (overrides any [data-bg]) ===== */
+[data-theme="light"]{
+  --ink-950:#ffffff;   /* top bar */
+  --ink-900:#fafafa;   /* app background (neutral light) */
+  --ink-850:#f1f1f1;   /* section panels */
+  --ink-800:#ffffff;   /* cards */
+  --ink-750:#f6f6f6;   /* elevated / hover card */
+  --ink-700:#eeeeee;   /* raised */
+  --ink-650:#e2e2e2;
+
+  --cream:#2a1640;     /* headings -> deep aubergine */
+  --cream-dim:#5d4d72;
+  --tx:#2c2438;
+  --tx-muted:#6c6178;
+  --tx-faint:#9b8fa8;
+
+  --tint:74,52,98;     /* dark tint for borders / fills / wave bars */
+  --shade:120,104,140; /* lighter inset shade */
+  --overlay:rgba(250,250,250,0.84);
+
+  --line:rgba(74,52,98,0.16);
+  --line-strong:rgba(74,52,98,0.26);
+
+  --shadow-sm:0 2px 8px rgba(90,70,110,0.10);
+  --shadow:0 14px 38px rgba(90,70,110,0.16);
+  --shadow-lg:0 28px 70px rgba(70,50,95,0.22);
+}
+/* light: keep inputs / selects crisp white instead of a dark inset */
+[data-theme="light"] .field,
+[data-theme="light"] .field:focus,
+[data-theme="light"] .ss-voice-sel,
+[data-theme="light"] .ss-title-input,
+[data-theme="light"] .ss-content-label-input,
+[data-theme="light"] .ss-textarea,
+[data-theme="light"] .sp-wave-card{ background:#ffffff; }
+/* light: "Conteúdo do Trecho" column fully white */
+[data-theme="light"] .ss-right{ background:#ffffff; }
+/* light: "Revisão na Íntegra" column matches the content area */
+[data-theme="light"] .ss-roteiro{ background:#ffffff; }
+[data-theme="light"] .ss-roteiro-panel{ background:#ffffff; }
+/* light: full-width footer bar stays white */
+[data-theme="light"] .ss-footer{ background:#ffffff; }
+/* light: "Ajustes finos" column fully white */
+[data-theme="light"] .sp-right{ background:#ffffff; }
+/* light: top bar reads as a clean white header */
+[data-theme="light"] .tb{ box-shadow:0 1px 0 rgba(74,52,98,0.06); }
+/* light: model "selected" pills + active chips stay legible */
+[data-theme="light"] .ma-chip.active{ background:var(--cream); color:#fff; }
+[data-theme="light"] .sld-input::-webkit-slider-thumb,
+[data-theme="light"] .sld-input::-moz-range-thumb{ background:#fff; }
