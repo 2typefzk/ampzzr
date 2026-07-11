@@ -11,8 +11,11 @@ import { Trilhas } from "./screens/Trilhas";
 import { Campaigns, CampaignDetail, CampaignModal } from "./screens/Campaigns";
 import { Settings } from "./screens/Settings";
 import { CreateFlow, type ImportKind } from "./screens/create-flow/CreateFlow";
+import { HelpTicketModal, ChamadoChat, createChamado } from "./components/Chamados";
 import { TRILHA_LIB, CAMPAIGN_LIB } from "./data/mockData";
-import type { Campaign, LibraryAudio, Trilha, TweakSettings } from "./types";
+import type { Campaign, Chamado, ChamadoOption, HelpTarget, LibraryAudio, Trilha, TweakSettings } from "./types";
+
+const USER_NAME = "Luciana";
 
 const TWEAK_DEFAULTS: TweakSettings = {
   accent: "#e8602a",
@@ -46,6 +49,33 @@ function App() {
   const [authed, setAuthed] = useState(false);
   const [welcome, setWelcome] = useState(false);
   const [tour, setTour] = useState(false);
+
+  // ---- Chamados (suporte) ----
+  const [chamados, setChamados] = useState<Chamado[]>([]);
+  const [helpTarget, setHelpTarget] = useState<HelpTarget | null>(null);
+  const [activeChamadoId, setActiveChamadoId] = useState<string | null>(null);
+
+  const requestHelp = (target: HelpTarget) => setHelpTarget(target);
+  const submitHelp = (text: string) => {
+    if (!helpTarget) return;
+    const ch = createChamado(helpTarget, text, USER_NAME);
+    setChamados((list) => [ch, ...list]);
+    setHelpTarget(null);
+    setActiveChamadoId(ch.id);
+  };
+  const chooseChamadoOption = (chamadoId: string, msgId: string, option: ChamadoOption) => {
+    setChamados((list) => list.map((c) => {
+      if (c.id !== chamadoId) return c;
+      const messages = c.messages
+        .map((m) => m.id === msgId ? { ...m, options: undefined } : m)
+        .concat(
+          { id: "u" + Date.now(), role: "user", content: option.label },
+          { id: "f" + Date.now(), role: "fuzzr", content: option.reply },
+        );
+      return { ...c, messages };
+    }));
+  };
+  const activeChamado = chamados.find((c) => c.id === activeChamadoId) || null;
 
   const onLogin = () => { setAuthed(true); setWelcome(true); };
 
@@ -112,6 +142,7 @@ function App() {
           illosEnabled={t.modelillos !== "off"}
           trilhas={trilhas}
           onClose={close}
+          onRequestHelp={requestHelp}
           onTrilhaUsed={(tr) => {
             if (tr && tr.id) {
               setTrilhas((list) => list.map((x) => x.id === tr.id ? { ...x, usedIn: (x.usedIn || 0) + 1 } : x));
@@ -128,6 +159,11 @@ function App() {
 
       {campaignModal && <CampaignModal campaign={"id" in campaignModal ? (campaignModal as Campaign) : null}
         onClose={() => setCampaignModal(null)} onSave={saveCampaign} />}
+
+      {helpTarget && <HelpTicketModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
+      {activeChamado && <ChamadoChat chamado={activeChamado}
+        onClose={() => setActiveChamadoId(null)}
+        onChoose={(msgId, option) => chooseChamadoOption(activeChamado.id, msgId, option)} />}
     </div>);
 }
 

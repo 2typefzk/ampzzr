@@ -110,3 +110,32 @@ export interface BatchRow {
   name: string;
   status: "pronto" | "aprovado" | "modificado";
 }
+
+/* ---- Chamados (suporte / help desk) ---- */
+export type ChamadoTargetKind = "audio" | "lote";
+
+export interface HelpTarget {
+  kind: ChamadoTargetKind;
+  title: string;
+}
+
+export interface ChamadoOption {
+  label: string;
+  reply: string;
+}
+
+export interface ChamadoMessage {
+  id: string;
+  role: "user" | "fuzzr";
+  content: string; // supports simple inline markup: **negrito** e _link_
+  options?: ChamadoOption[];
+}
+
+export interface Chamado {
+  id: string;
+  num: number;
+  targetKind: ChamadoTargetKind;
+  targetTitle: string;
+  messages: ChamadoMessage[];
+  ts: number;
+}

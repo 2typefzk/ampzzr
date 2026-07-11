@@ -9,7 +9,7 @@ import { AmpliAudio, makeWaveBars } from "../../lib/audioEngine";
 import { MODELS, VOICES, TRILHA_LIB } from "../../data/mockData";
 import { estimateDurationForVariation, buildRoteiroForVariation } from "./StepStructure";
 import { encodeWAV, fmt } from "./StepPreview";
-import type { BatchRow, ModelId, Trecho, TrechoTipo, Trilha } from "../../types";
+import type { BatchRow, HelpTarget, ModelId, Trecho, TrechoTipo, Trilha } from "../../types";
 
 /* ---- Rainbow por linha (ordem do arco-íris, cor de fundo a 75%) ---- */
 function _hslToRgb(h: number, s: number, l: number): [number, number, number] {
@@ -404,8 +404,9 @@ function RowActions({ row, menuOpen, onPlay, onRegen, onDownload, onMenu, onDeta
 }
 
 /* ===== main screen ===== */
-export function BatchEdit({ onClose, onComplete, seed }: {
-  onClose: () => void; onComplete: () => void; seed?: { rows: BatchRow[]; trechos: Trecho[]; title: string; model: ModelId; trilha?: Trilha | null };
+export function BatchEdit({ onClose, onComplete, onRequestHelp, seed }: {
+  onClose: () => void; onComplete: () => void; onRequestHelp?: (target: HelpTarget) => void;
+  seed?: { rows: BatchRow[]; trechos: Trecho[]; title: string; model: ModelId; trilha?: Trilha | null };
 }) {
   const init = seed || mkBatchDemo();
   const m = MODELS[init.model] || MODELS.spot;
@@ -688,7 +689,7 @@ export function BatchEdit({ onClose, onComplete, seed }: {
         <div className="ss-footer-info">
           <span className="mono ss-footer-dur">{String(N).padStart(2, "0")}</span>
           <span>{N === 1 ? "áudio no lote" : "áudios no lote"}</span>
-          <button className="btn btn-ghost btn-sm be-help-btn" onClick={() => flash("Pedido enviado — nossa equipe vai te ajudar")}>
+          <button className="btn btn-ghost btn-sm be-help-btn" onClick={() => onRequestHelp && onRequestHelp({ kind: "lote", title: loteTitle })}>
             {Icon.help({ style: { width: 16, height: 16 } })} Preciso de ajuda
           </button>
         </div>

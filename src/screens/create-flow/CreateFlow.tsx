@@ -10,7 +10,7 @@ import { StepPreview } from "./StepPreview";
 import { StepBatchFiles } from "./StepBatchFiles";
 import { BatchEdit } from "./StepBatch";
 import { DEFAULT_TRECHOS, SAMPLE_IMPORT } from "../../data/mockData";
-import type { LibraryAudio, ModelId, Trecho, Trilha } from "../../types";
+import type { HelpTarget, LibraryAudio, ModelId, Trecho, Trilha } from "../../types";
 
 export type ImportKind = "file" | "paste" | "batch" | "batch-scratch" | null;
 
@@ -18,6 +18,7 @@ export interface CreateFlowProps {
   onClose: () => void;
   onComplete: (result: { title?: string; model?: ModelId; trechos?: Trecho[]; trilha?: Trilha | null; batch?: boolean }) => void;
   onTrilhaUsed?: (t: Trilha | null) => void;
+  onRequestHelp?: (target: HelpTarget) => void;
   startAudio: LibraryAudio | null;
   importText?: string | null;
   importKind: ImportKind;
@@ -28,7 +29,7 @@ export interface CreateFlowProps {
 
 let flowTimers: ReturnType<typeof setTimeout>[] = [];
 
-export function CreateFlow({ onClose, onComplete, onTrilhaUsed, startAudio, importText, importKind, modelosEnabled, illosEnabled, trilhas }: CreateFlowProps) {
+export function CreateFlow({ onClose, onComplete, onTrilhaUsed, onRequestHelp, startAudio, importText, importKind, modelosEnabled, illosEnabled, trilhas }: CreateFlowProps) {
   const [step, setStep] = useState(importKind === "batch-scratch" ? 8 : importKind ? 0 : 1);
   const [model, setModel] = useState<ModelId>("spot");
   const [title, setTitle] = useState("Novo Áudio");
@@ -183,6 +184,7 @@ export function CreateFlow({ onClose, onComplete, onTrilhaUsed, startAudio, impo
           showQuality={imported}
           onGenerate={() => setStep(4)}
           onBack={() => setStep(2)}
+          onRequestHelp={onRequestHelp}
           onClose={onClose} />
       }
 
@@ -196,7 +198,7 @@ export function CreateFlow({ onClose, onComplete, onTrilhaUsed, startAudio, impo
           onFinish={() => onComplete({ title, model, trechos, trilha })} />
       }
 
-      {step === 9 && <BatchEdit onClose={onClose} onComplete={() => onComplete({ batch: true })} />}
+      {step === 9 && <BatchEdit onClose={onClose} onComplete={() => onComplete({ batch: true })} onRequestHelp={onRequestHelp} />}
 
       {processing && <ProcessingModal phase={processing} batch={importKind === "batch"} />}
     </div>);
