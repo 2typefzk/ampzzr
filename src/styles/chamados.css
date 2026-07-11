@@ -1,0 +1,82 @@
+/* ============================================================
+   AMPLI — Chamados (suporte / help desk)
+   Modal "Abrir chamado" + variação "Chat de Chamado" do Ampl.IA
+   (mesmo esqueleto visual, mas usando a cor primária do app).
+   ============================================================ */
+
+/* botão "Preciso de ajuda" no footer do Editor de Áudio Unitário
+   (mesma exibição do footer do Editor de Lote — .be-footer .be-help-btn) */
+.ss-footer .be-help-btn { margin-left: 14px; }
+
+/* ---------- Modal: Abrir chamado ---------- */
+/* acima da janela do Chat de Chamado (.ai-win z-index 521) */
+.ck-modal-scrim { z-index: 560; }
+.ck-modal .md-sub { font-style: normal; color: var(--cream-dim); font-weight: 600; }
+.ck-modal-textarea {
+  width: 100%; height: auto; min-height: 116px; resize: vertical;
+  padding: 13px 15px; line-height: 1.55; font-size: 14.5px; font-family: var(--display);
+}
+.ck-modal-foot { display: flex; justify-content: flex-end; margin-top: 20px; }
+
+/* ---------- Identity badge (balão de mensagem na cor primária) ---------- */
+.ck-badge {
+  border-radius: 11px; flex: none; display: grid; place-items: center;
+  background: var(--orange); color: #fff;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--orange) 40%, transparent);
+}
+
+/* ---------- Janela do Chat de Chamado ---------- */
+.ck-win { bottom: 26px; max-height: calc(100vh - 52px); }
+/* brilho suave da cor primária no topo (substitui a aura gradiente do Ampl.IA) */
+.ck-win::before {
+  content: ""; position: absolute; top: -38%; left: -10%; right: -10%; height: 70%;
+  pointer-events: none; z-index: 0;
+  background: radial-gradient(60% 100% at 50% 0%, color-mix(in srgb, var(--orange) 65%, transparent), transparent 70%);
+  filter: blur(60px); opacity: 0.2;
+}
+.ck-head, .ck-body { position: relative; z-index: 2; }
+
+/* header do chat (rola junto com a conversa) */
+.ck-hero {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 18px 12px 4px; gap: 6px;
+}
+.ck-logo { display: block; color: var(--orange); }
+.ck-hero-title {
+  font-family: var(--display); font-weight: 800; font-stretch: 80%; font-size: 22px;
+  color: #fff; margin: 12px 0 0; letter-spacing: -0.01em;
+}
+.ck-hero-sub {
+  font-size: 13.5px; color: var(--ai-tx-dim); margin: 2px 0 0; font-style: italic;
+  max-width: 360px; line-height: 1.45;
+}
+
+.ck-divider { height: 1px; background: var(--ai-line); margin: 16px 14px; }
+.ck-start {
+  text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ai-tx-faint); margin-bottom: 18px;
+}
+
+/* mensagens — bolha do usuário na cor primária */
+.ck-win .ai-msg.user .ai-bubble { background: var(--orange); color: #fff; font-weight: 500; }
+
+/* opções de interação (botões de resposta rápida) */
+.ck-options { display: flex; flex-direction: column; gap: 9px; margin: 12px 0 2px 38px; }
+.ck-opt {
+  text-align: left; font-family: var(--display); font-weight: 600; font-size: 13.5px;
+  color: var(--ai-tx); background: rgba(214, 205, 240, 0.05); border: 1px solid var(--ai-line);
+  border-radius: 12px; padding: 11px 15px; cursor: pointer;
+  transition: background .16s var(--ease), border-color .16s var(--ease), transform .16s var(--ease);
+}
+.ck-opt:hover {
+  background: color-mix(in srgb, var(--orange) 16%, transparent);
+  border-color: color-mix(in srgb, var(--orange) 45%, transparent);
+  transform: translateX(3px);
+}
+
+/* links inline dentro das mensagens */
+.ck-link {
+  background: none; border: none; padding: 0; font: inherit; cursor: pointer;
+  color: var(--orange); text-decoration: underline; text-underline-offset: 2px;
+}
+.ck-link:hover { filter: brightness(1.12); }

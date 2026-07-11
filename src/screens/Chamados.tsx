@@ -7,6 +7,7 @@
    ============================================================ */
 import { useMemo, useState, useRef, useEffect, type ReactNode } from "react";
 import { Icon } from "../components/Icon";
+import { renderRich } from "../components/Chamados";
 import { CHAMADO_LIB, CHAMADO_STATUS, CHAMADO_PRIORITY, CHAMADO_CATEGORIES, CAMPAIGNS } from "../data/mockData";
 import type { Chamado, ChamadoMessage, ChamadoStatus, ChamadoPriority } from "../types";
 
@@ -15,6 +16,13 @@ const PRIORITY_ORDER: Record<ChamadoPriority, number> = { baixa: 0, media: 1, al
 
 function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+}
+
+// Próximo número de protocolo a partir da lista atual (compartilhado com o
+// fluxo "Preciso de ajuda" em App.tsx).
+export function nextProtocolo(list: Chamado[]): string {
+  const max = list.reduce((mx, c) => Math.max(mx, parseInt(c.protocolo.replace("#", ""), 10) || 0), 1820);
+  return "#" + (max + 1);
 }
 
 /* ---- Status / priority chips ---- */
@@ -181,7 +189,12 @@ function ChamadoThread({ chamado, onClose, onReply, onStatus }: {
                   <span className="ch-msg-author">{m.author}</span>
                   <span className="ch-msg-time">{m.time}</span>
                 </div>
-                <div className="ch-bubble">{m.body}</div>
+                <div className="ch-bubble">{renderRich(m.body)}</div>
+                {m.options && m.options.length > 0 && (
+                  <div className="ch-msg-options">
+                    {m.options.map((o) => <span key={o.label} className="ch-msg-opt">{o.label}</span>)}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -326,9 +339,8 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
     subject: string; category: string; priority: ChamadoPriority; campaign: string; body: string;
   }) => {
     const now = Date.now();
-    const maxProto = items.reduce((mx, c) => Math.max(mx, parseInt(c.protocolo.replace("#", ""), 10) || 0), 1820);
     const c: Chamado = {
-      id: "ch" + now, protocolo: "#" + (maxProto + 1), subject, status: "aberto", priority,
+      id: "ch" + now, protocolo: nextProtocolo(items), subject, status: "aberto", priority,
       category, requester: "Luciana Zappala", campaign: campaign || undefined,
       createdTs: now, openedDate: "Hoje", updatedTs: now, date: "Agora",
       messages: [{ id: "m" + now, role: "cliente", author: "Luciana Zappala", body, time: "Agora", ts: now }],

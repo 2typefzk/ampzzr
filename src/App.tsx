@@ -12,8 +12,12 @@ import { Chamados } from "./screens/Chamados";
 import { Campaigns, CampaignDetail, CampaignModal } from "./screens/Campaigns";
 import { Settings } from "./screens/Settings";
 import { CreateFlow, type ImportKind } from "./screens/create-flow/CreateFlow";
+import { HelpTicketModal, ChamadoChat, createChamado } from "./components/Chamados";
+import { nextProtocolo } from "./screens/Chamados";
 import { TRILHA_LIB, CAMPAIGN_LIB, CHAMADO_LIB } from "./data/mockData";
-import type { Campaign, Chamado, LibraryAudio, Trilha, TweakSettings } from "./types";
+import type { Campaign, Chamado, ChamadoMessage, ChamadoOption, HelpTarget, LibraryAudio, Trilha, TweakSettings } from "./types";
+
+const USER_NAME = "Luciana Zappala";
 
 const TWEAK_DEFAULTS: TweakSettings = {
   accent: "#e8602a",
@@ -48,6 +52,35 @@ function App() {
   const [authed, setAuthed] = useState(false);
   const [welcome, setWelcome] = useState(false);
   const [tour, setTour] = useState(false);
+
+  // ---- Chamados de ajuda ("Preciso de ajuda" nos editores) ----
+  // Compartilham o mesmo estado `chamados` da tela CRUD.
+  const [helpTarget, setHelpTarget] = useState<HelpTarget | null>(null);
+  const [activeChamadoId, setActiveChamadoId] = useState<string | null>(null);
+
+  const requestHelp = (target: HelpTarget) => setHelpTarget(target);
+  const submitHelp = (text: string) => {
+    if (!helpTarget) return;
+    const ch = createChamado(helpTarget, text, USER_NAME, nextProtocolo(chamados));
+    setChamados((list) => [ch, ...list]);
+    setHelpTarget(null);
+    setActiveChamadoId(ch.id);
+  };
+  const chooseChamadoOption = (chamadoId: string, msgId: string, option: ChamadoOption) => {
+    setChamados((list) => list.map((c) => {
+      if (c.id !== chamadoId) return c;
+      const now = Date.now();
+      const reply: ChamadoMessage[] = [
+        { id: "u" + now, role: "cliente", author: c.requester, body: option.label, time: "Agora", ts: now },
+        { id: "f" + now, role: "suporte", author: "Equipe Fuzzr", body: option.reply, time: "Agora", ts: now + 1 },
+      ];
+      const messages = c.messages
+        .map((m) => m.id === msgId ? { ...m, options: undefined } : m)
+        .concat(reply);
+      return { ...c, messages, updatedTs: now, date: "Agora" };
+    }));
+  };
+  const activeChamado = chamados.find((c) => c.id === activeChamadoId) || null;
 
   const onLogin = () => { setAuthed(true); setWelcome(true); };
 
@@ -116,6 +149,7 @@ function App() {
           illosEnabled={t.modelillos !== "off"}
           trilhas={trilhas}
           onClose={close}
+          onRequestHelp={requestHelp}
           onTrilhaUsed={(tr) => {
             if (tr && tr.id) {
               setTrilhas((list) => list.map((x) => x.id === tr.id ? { ...x, usedIn: (x.usedIn || 0) + 1 } : x));
@@ -132,6 +166,11 @@ function App() {
 
       {campaignModal && <CampaignModal campaign={"id" in campaignModal ? (campaignModal as Campaign) : null}
         onClose={() => setCampaignModal(null)} onSave={saveCampaign} />}
+
+      {helpTarget && <HelpTicketModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
+      {activeChamado && <ChamadoChat chamado={activeChamado}
+        onClose={() => setActiveChamadoId(null)}
+        onChoose={(msgId, option) => chooseChamadoOption(activeChamado.id, msgId, option)} />}
     </div>);
 }
 

@@ -7,7 +7,7 @@ import { Waveform } from "../../components/Waveform";
 import { AmpliAudio, makeWaveBars } from "../../lib/audioEngine";
 import { MODELS, TRILHAS, TRILHA_GENRES } from "../../data/mockData";
 import { fmtDur as fmtTrilhaDur } from "../Trilhas";
-import type { ModelId, Trecho, TrechoTipo, Trilha } from "../../types";
+import type { HelpTarget, ModelId, Trecho, TrechoTipo, Trilha } from "../../types";
 
 /* Variações of a "Variável" trecho — always returns at least one block. */
 export function getVars(t?: Trecho | null): string[] {
@@ -88,6 +88,7 @@ export interface StepStructureProps {
   onGenerate: () => void;
   onClose: () => void;
   onBack: () => void;
+  onRequestHelp?: (target: HelpTarget) => void;
   showQuality?: boolean;
   modelosEnabled?: boolean;
   varLabels: string[];
@@ -96,7 +97,7 @@ export interface StepStructureProps {
 
 export function StepStructure(props: StepStructureProps) {
   const { model, setModel, title, setTitle, trechos, setTrechos,
-    selId, setSelId, trilha, setTrilha, trilhas, onGenerate, onClose, onBack, showQuality, modelosEnabled,
+    selId, setSelId, trilha, setTrilha, trilhas, onGenerate, onClose, onBack, onRequestHelp, showQuality, modelosEnabled,
     varLabels, setVarLabels } = props;
   const trilhaList = (trilhas && trilhas.length) ? trilhas : TRILHAS;
 
@@ -211,6 +212,9 @@ export function StepStructure(props: StepStructureProps) {
         <span className="ss-footer-sep">·</span>
         <span>{trechos.length} trechos</span>
         {trilha && <><span className="ss-footer-sep">·</span><span>trilha: {trilha.name}</span></>}
+        <button className="btn btn-ghost btn-sm be-help-btn" onClick={() => onRequestHelp && onRequestHelp({ kind: "audio", title })}>
+          {Icon.help({ style: { width: 16, height: 16 } })} Preciso de ajuda
+        </button>
       </div>
       <div className="ss-footer-actions">
         {model === "novo" &&
@@ -515,7 +519,7 @@ export function StepStructure(props: StepStructureProps) {
         setTrechos(parsed); setSelId(parsed[0].id); setImportOpen(false);
       }} />}
 
-      {quality && <QualityDrawer onDismiss={() => setQuality(false)} onHelp={() => flash("Pedido enviado — nossa equipe vai te ajudar com o roteiro")} />}
+      {quality && <QualityDrawer onDismiss={() => setQuality(false)} onHelp={() => onRequestHelp && onRequestHelp({ kind: "audio", title })} />}
 
       {toast && <div className="sp-toast anim-up">{Icon.check({ style: { width: 16, height: 16 } })} {toast}</div>}
     </div>);

@@ -93,18 +93,34 @@ export interface Trecho {
   variacoes?: string[];
 }
 
-/* ---- Chamados (suporte / support tickets) ---- */
+/* ---- Chamados (suporte / support tickets) ----
+   Modelo unificado: a tela CRUD lista chamados, e o fluxo
+   "Preciso de ajuda" (editores) cria chamados aqui também. */
 export type ChamadoStatus = "aberto" | "andamento" | "resolvido" | "fechado";
 export type ChamadoPriority = "baixa" | "media" | "alta" | "urgente";
 export type ChamadoRole = "cliente" | "suporte";
+export type ChamadoTargetKind = "audio" | "lote";
+
+// Alvo (Áudio/Lote) de onde um chamado de ajuda foi aberto.
+export interface HelpTarget {
+  kind: ChamadoTargetKind;
+  title: string;
+}
+
+// Botões de auto-ajuda oferecidos numa mensagem do suporte.
+export interface ChamadoOption {
+  label: string;
+  reply: string;
+}
 
 export interface ChamadoMessage {
   id: string;
-  role: ChamadoRole;
+  role: ChamadoRole;         // cliente = usuário · suporte = Fuzzr
   author: string;
-  body: string;
+  body: string;              // aceita marcação inline: **negrito** e _link_
   time: string;
   ts: number;
+  options?: ChamadoOption[]; // presente só no chat de ajuda roteirizado
 }
 
 export interface Chamado {
@@ -116,6 +132,7 @@ export interface Chamado {
   category: string;
   requester: string;
   campaign?: string;
+  target?: HelpTarget;       // definido quando aberto de um Áudio/Lote
   createdTs: number;
   openedDate: string;
   updatedTs: number;
