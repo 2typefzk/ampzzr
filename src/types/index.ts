@@ -93,6 +93,36 @@ export interface Trecho {
   variacoes?: string[];
 }
 
+/* ---- Chamados (suporte / support tickets) ---- */
+export type ChamadoStatus = "aberto" | "andamento" | "resolvido" | "fechado";
+export type ChamadoPriority = "baixa" | "media" | "alta" | "urgente";
+export type ChamadoRole = "cliente" | "suporte";
+
+export interface ChamadoMessage {
+  id: string;
+  role: ChamadoRole;
+  author: string;
+  body: string;
+  time: string;
+  ts: number;
+}
+
+export interface Chamado {
+  id: string;
+  protocolo: string;
+  subject: string;
+  status: ChamadoStatus;
+  priority: ChamadoPriority;
+  category: string;
+  requester: string;
+  campaign?: string;
+  createdTs: number;
+  openedDate: string;
+  updatedTs: number;
+  date: string;
+  messages: ChamadoMessage[];
+}
+
 export interface TweakSettings {
   accent: string;
   theme: "escuro" | "claro";

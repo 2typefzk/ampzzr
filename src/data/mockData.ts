@@ -3,6 +3,7 @@
    ============================================================ */
 import type {
   Model, ModelId, Voice, Trilha, LibraryAudio, Trecho, TrilhaGenre, Campaign,
+  Chamado, ChamadoStatus, ChamadoPriority,
 } from "../types";
 import spotDark from "../assets/spot-dark.png";
 import spotLight from "../assets/spot-light.png";
@@ -134,6 +135,107 @@ export const CAMPAIGN_LIB: Campaign[] = [
   { id: "cmp4", title: "Black do Meio do Ano", start: "2026-06-01", end: "2026-06-30", desc: "Mega promoção de meio de ano com descontos agressivos em todas as categorias.", ts: Date.parse("2026-05-25T11:00") },
   { id: "cmp5", title: "Feirão de Usados", start: "", end: "", desc: "Feirão de veículos seminovos e usados com condições especiais de entrada.", ts: Date.parse("2026-05-29T16:00") },
   { id: "cmp6", title: "Arraiá da Cidade", start: "2026-06-20", end: "2026-06-29", desc: "", ts: Date.parse("2026-05-31T08:00") },
+];
+
+// ---- Chamados (support tickets) — CRUD screen ----
+export const CHAMADO_STATUS: Record<ChamadoStatus, { id: ChamadoStatus; name: string; color: string }> = {
+  aberto: { id: "aberto", name: "Aberto", color: "#5aa6c9" },
+  andamento: { id: "andamento", name: "Em andamento", color: "#d4a23a" },
+  resolvido: { id: "resolvido", name: "Resolvido", color: "#4caf7d" },
+  fechado: { id: "fechado", name: "Fechado", color: "#7d7689" },
+};
+
+export const CHAMADO_PRIORITY: Record<ChamadoPriority, { id: ChamadoPriority; name: string; color: string }> = {
+  baixa: { id: "baixa", name: "Baixa", color: "#7d7689" },
+  media: { id: "media", name: "Média", color: "#5aa6c9" },
+  alta: { id: "alta", name: "Alta", color: "#e8602a" },
+  urgente: { id: "urgente", name: "Urgente", color: "#ff6b6b" },
+};
+
+export const CHAMADO_CATEGORIES: string[] = [
+  "Áudio", "Trilha", "Técnico", "Financeiro", "Conta", "Dúvida",
+];
+
+// Seeded library of chamados — cada um com a íntegra da troca de mensagens.
+export const CHAMADO_LIB: Chamado[] = [
+  {
+    id: "ch1820", protocolo: "#1820", subject: "Ruído de fundo no spot renderizado",
+    status: "andamento", priority: "alta", category: "Áudio", requester: "Luciana Zappala",
+    campaign: "Semana do Cliente",
+    createdTs: Date.parse("2026-07-09T14:02"), openedDate: "9 jul",
+    updatedTs: Date.parse("2026-07-10T16:40"), date: "Ontem, 16:40",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "Olá! Ao baixar o spot “Atacadão — Queima de Estoque” percebi um chiado leve durante a locução. Nos outros áudios da mesma campanha isso não acontece. Conseguem verificar?", time: "9 jul, 14:02", ts: Date.parse("2026-07-09T14:02") },
+      { id: "m2", role: "suporte", author: "Equipe Fuzzr", body: "Oi, Luciana! Obrigado por avisar. Já localizamos a renderização aqui e vamos analisar a trilha de fundo aplicada. Você chegou a testar em outro dispositivo ou fone?", time: "9 jul, 15:20", ts: Date.parse("2026-07-09T15:20") },
+      { id: "m3", role: "cliente", author: "Luciana Zappala", body: "Testei no fone e na caixa de som do notebook — o chiado aparece nos dois. É bem sutil, mas dá pra notar no trecho final.", time: "9 jul, 16:05", ts: Date.parse("2026-07-09T16:05") },
+      { id: "m4", role: "suporte", author: "Equipe Fuzzr", body: "Perfeito, isso ajuda a isolar. Identificamos que a trilha “Energia Varejo” estava com o ganho um pouco alto no master. Já estamos reprocessando o áudio e devolvemos a versão corrigida ainda hoje.", time: "10 jul, 16:40", ts: Date.parse("2026-07-10T16:40") },
+    ],
+  },
+  {
+    id: "ch1819", protocolo: "#1819", subject: "Solicitar nova voz feminina para carro de som",
+    status: "aberto", priority: "media", category: "Dúvida", requester: "Luciana Zappala",
+    campaign: "Arraiá da Cidade",
+    createdTs: Date.parse("2026-07-10T09:12"), openedDate: "10 jul",
+    updatedTs: Date.parse("2026-07-10T09:12"), date: "Ontem, 09:12",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "Bom dia! Para a campanha do Arraiá gostaríamos de uma voz feminina mais jovem e regional. As opções atuais são ótimas, mas queria algo com mais “sotaque de interior”. É possível adicionar?", time: "10 jul, 09:12", ts: Date.parse("2026-07-10T09:12") },
+    ],
+  },
+  {
+    id: "ch1817", protocolo: "#1817", subject: "Fatura de junho com valor divergente",
+    status: "resolvido", priority: "alta", category: "Financeiro", requester: "Luciana Zappala",
+    createdTs: Date.parse("2026-07-02T10:30"), openedDate: "2 jul",
+    updatedTs: Date.parse("2026-07-05T11:15"), date: "5 jul",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "Oi, a fatura de junho veio com um valor acima do plano contratado. Poderiam conferir os áudios cobrados no período?", time: "2 jul, 10:30", ts: Date.parse("2026-07-02T10:30") },
+      { id: "m2", role: "suporte", author: "Equipe Fuzzr", body: "Olá, Luciana! Vamos verificar o detalhamento de uso e retornamos com a composição da fatura.", time: "2 jul, 13:44", ts: Date.parse("2026-07-02T13:44") },
+      { id: "m3", role: "suporte", author: "Equipe Fuzzr", body: "Confirmado: havia 3 lotes contabilizados em duplicidade por um erro de sincronização. Já emitimos uma nota de crédito e a próxima fatura virá com o abatimento. Desculpe o transtorno!", time: "5 jul, 11:15", ts: Date.parse("2026-07-05T11:15") },
+      { id: "m4", role: "cliente", author: "Luciana Zappala", body: "Perfeito, muito obrigada pela agilidade! Podem encerrar.", time: "5 jul, 11:40", ts: Date.parse("2026-07-05T11:40") },
+    ],
+  },
+  {
+    id: "ch1815", protocolo: "#1815", subject: "Exportar lote em formato WAV",
+    status: "andamento", priority: "baixa", category: "Técnico", requester: "Luciana Zappala",
+    campaign: "Black do Meio do Ano",
+    createdTs: Date.parse("2026-07-08T15:50"), openedDate: "8 jul",
+    updatedTs: Date.parse("2026-07-09T10:05"), date: "9 jul",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "Consigo exportar um lote inteiro em WAV de uma vez? Hoje só encontro a opção de MP3 por áudio.", time: "8 jul, 15:50", ts: Date.parse("2026-07-08T15:50") },
+      { id: "m2", role: "suporte", author: "Equipe Fuzzr", body: "Oi! A exportação de lote em WAV está no nosso roadmap. Por enquanto conseguimos gerar o pacote manualmente para você — quer que eu envie o do lote “Black do Meio do Ano”?", time: "9 jul, 10:05", ts: Date.parse("2026-07-09T10:05") },
+    ],
+  },
+  {
+    id: "ch1811", protocolo: "#1811", subject: "Trilha “Lounge Sofisticado” sem prévia",
+    status: "resolvido", priority: "media", category: "Trilha", requester: "Luciana Zappala",
+    campaign: "Dia das Mães",
+    createdTs: Date.parse("2026-06-28T11:20"), openedDate: "28 jun",
+    updatedTs: Date.parse("2026-06-29T09:30"), date: "29 jun",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "A trilha “Lounge Sofisticado” não toca a prévia na biblioteca, fica só carregando.", time: "28 jun, 11:20", ts: Date.parse("2026-06-28T11:20") },
+      { id: "m2", role: "suporte", author: "Equipe Fuzzr", body: "Era um arquivo de preview corrompido no nosso lado. Já substituímos — pode testar novamente que deve tocar normalmente.", time: "29 jun, 09:30", ts: Date.parse("2026-06-29T09:30") },
+    ],
+  },
+  {
+    id: "ch1804", protocolo: "#1804", subject: "Adicionar usuário à conta da Casas Bahia",
+    status: "fechado", priority: "baixa", category: "Conta", requester: "Luciana Zappala",
+    createdTs: Date.parse("2026-06-20T14:00"), openedDate: "20 jun",
+    updatedTs: Date.parse("2026-06-21T08:10"), date: "21 jun",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "Preciso liberar acesso para o Rafael da equipe de mídia. Como faço?", time: "20 jun, 14:00", ts: Date.parse("2026-06-20T14:00") },
+      { id: "m2", role: "suporte", author: "Equipe Fuzzr", body: "Já enviamos o convite para o e-mail do Rafael com perfil de Editor. Assim que ele aceitar, aparece no painel da conta.", time: "20 jun, 16:35", ts: Date.parse("2026-06-20T16:35") },
+      { id: "m3", role: "cliente", author: "Luciana Zappala", body: "Aceito e funcionando. Obrigada!", time: "21 jun, 08:10", ts: Date.parse("2026-06-21T08:10") },
+    ],
+  },
+  {
+    id: "ch1798", protocolo: "#1798", subject: "Urgente: áudio aprovado sumiu da campanha",
+    status: "aberto", priority: "urgente", category: "Técnico", requester: "Luciana Zappala",
+    campaign: "Liquida Total",
+    createdTs: Date.parse("2026-07-11T08:05"), openedDate: "Hoje",
+    updatedTs: Date.parse("2026-07-11T08:05"), date: "Hoje, 08:05",
+    messages: [
+      { id: "m1", role: "cliente", author: "Luciana Zappala", body: "O áudio “Casas Bahia — Liquida Total” que já estava aprovado sumiu da lista da campanha e ele vai ao ar hoje à tarde. Preciso de ajuda com urgência!", time: "Hoje, 08:05", ts: Date.parse("2026-07-11T08:05") },
+    ],
+  },
 ];
 
 // Seeded library of trilhas (durSec + bytes drive the numeric sorting; usedIn = nº de áudios)

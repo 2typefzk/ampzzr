@@ -8,11 +8,12 @@ import { LoginScreen, WelcomeModal, TourGuide } from "./screens/Auth";
 import { Dashboard } from "./screens/Dashboard";
 import { MyAudios } from "./screens/MyAudios";
 import { Trilhas } from "./screens/Trilhas";
+import { Chamados } from "./screens/Chamados";
 import { Campaigns, CampaignDetail, CampaignModal } from "./screens/Campaigns";
 import { Settings } from "./screens/Settings";
 import { CreateFlow, type ImportKind } from "./screens/create-flow/CreateFlow";
-import { TRILHA_LIB, CAMPAIGN_LIB } from "./data/mockData";
-import type { Campaign, LibraryAudio, Trilha, TweakSettings } from "./types";
+import { TRILHA_LIB, CAMPAIGN_LIB, CHAMADO_LIB } from "./data/mockData";
+import type { Campaign, Chamado, LibraryAudio, Trilha, TweakSettings } from "./types";
 
 const TWEAK_DEFAULTS: TweakSettings = {
   accent: "#e8602a",
@@ -26,7 +27,7 @@ const TWEAK_DEFAULTS: TweakSettings = {
   heroanim: "on",
 };
 
-type Route = "dashboard" | "audios" | "trilhas" | "campanhas" | "campanha" | "settings";
+type Route = "dashboard" | "audios" | "trilhas" | "chamados" | "campanhas" | "campanha" | "settings";
 
 function App() {
   const [t, setT] = useState<TweakSettings>(TWEAK_DEFAULTS);
@@ -37,6 +38,7 @@ function App() {
   const [editAudio, setEditAudio] = useState<LibraryAudio | null>(null);
   const [importRoteiro, setImportRoteiro] = useState<{ text: string | null; kind: ImportKind } | null>(null);
   const [trilhas, setTrilhas] = useState<Trilha[]>(() => TRILHA_LIB);
+  const [chamados, setChamados] = useState<Chamado[]>(() => CHAMADO_LIB);
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => CAMPAIGN_LIB);
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [campaignModal, setCampaignModal] = useState<Campaign | {} | null>(null);
@@ -85,7 +87,7 @@ function App() {
     <div className="app-root">
       <TopBar t={t} onNew={startNew} onOpenSettings={() => setRoute("settings")} onLogout={() => { setAuthed(false); setWelcome(false); setTour(false); setRoute("audios"); setAmpliaOpen(false); }} />
       <div className="app-body">
-        <Sidebar route={route} onNavigate={(id) => { if (id === "audios" || id === "dashboard" || id === "trilhas" || id === "campanhas") setRoute(id as Route); }} onOpenAmplia={() => setAmpliaOpen(true)} ampliaEnabled={ampliaEnabled} />
+        <Sidebar route={route} onNavigate={(id) => { if (id === "audios" || id === "dashboard" || id === "trilhas" || id === "chamados" || id === "campanhas") setRoute(id as Route); }} onOpenAmplia={() => setAmpliaOpen(true)} ampliaEnabled={ampliaEnabled} />
         {route === "settings" ?
           <Settings t={t} setTweak={setTweak} onClose={() => setRoute("audios")} /> :
           route === "dashboard" ?
@@ -93,6 +95,8 @@ function App() {
             route === "trilhas" ?
               <Trilhas theme={t.theme} items={trilhas} setItems={setTrilhas}
                 onOpenCampaign={openCampaignByName} /> :
+              route === "chamados" ?
+                <Chamados items={chamados} setItems={setChamados} /> :
               route === "campanhas" ?
                 <Campaigns campaigns={campaigns} onOpen={openCampaign} onCreate={() => setCampaignModal({})} /> :
                 route === "campanha" ?
