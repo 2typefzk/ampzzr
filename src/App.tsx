@@ -80,6 +80,15 @@ function App() {
       return { ...c, messages, updatedTs: now, date: "Agora" };
     }));
   };
+  const replyChamado = (chamadoId: string, body: string) => {
+    setChamados((list) => list.map((c) => {
+      if (c.id !== chamadoId) return c;
+      const now = Date.now();
+      const msg: ChamadoMessage = { id: "u" + now, role: "cliente", author: c.requester, body, time: "Agora", ts: now };
+      const reopened = c.status === "resolvido" || c.status === "fechado";
+      return { ...c, messages: [...c.messages, msg], updatedTs: now, date: "Agora", status: reopened ? "aberto" : c.status };
+    }));
+  };
   const activeChamado = chamados.find((c) => c.id === activeChamadoId) || null;
 
   const onLogin = () => { setAuthed(true); setWelcome(true); };
@@ -170,6 +179,7 @@ function App() {
       {helpTarget && <HelpTicketModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
       {activeChamado && <ChamadoChat chamado={activeChamado}
         onClose={() => setActiveChamadoId(null)}
+        onReply={(body) => replyChamado(activeChamado.id, body)}
         onChoose={(msgId, option) => chooseChamadoOption(activeChamado.id, msgId, option)} />}
     </div>);
 }

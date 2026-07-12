@@ -96,8 +96,6 @@ export function createChamado(target: HelpTarget, userMessage: string, userName:
     protocolo,
     subject: `Ajuda com o ${kindLabel} ${target.title}`,
     status: "aberto",
-    priority: "media",
-    category: kindLabel,
     requester: userName,
     target,
     createdTs: now,
@@ -147,16 +145,27 @@ export function HelpTicketModal({ target, onClose, onSubmit }: {
 /* ============================================================
    Janela — Chat de Chamado (variação do Ampl.IA)
    ============================================================ */
-export function ChamadoChat({ chamado, onClose, onChoose }: {
+export function ChamadoChat({ chamado, onClose, onChoose, onReply }: {
   chamado: Chamado; onClose: () => void; onChoose: (msgId: string, option: ChamadoOption) => void;
+  onReply?: (body: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const kindLabel = chamado.target?.kind === "lote" ? "Lote" : "Áudio";
+  const [draft, setDraft] = useState("");
+  // Chamados abertos de um Áudio/Lote têm alvo; os demais mostram o assunto.
+  const heroTitle = chamado.target ? "Ajuda com o " + (chamado.target.kind === "lote" ? "Lote" : "Áudio") : chamado.subject;
+  const heroSub = chamado.target ? chamado.target.title : "Aberto em " + chamado.openedDate + " por " + chamado.requester;
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [chamado.messages]);
+
+  const send = () => {
+    const body = draft.trim();
+    if (!body || !onReply) return;
+    onReply(body);
+    setDraft("");
+  };
 
   return (
     <div className="ai-win ck-win" role="dialog" aria-label={"Chamado " + chamado.protocolo}>
@@ -179,8 +188,8 @@ export function ChamadoChat({ chamado, onClose, onChoose }: {
         {/* header do chat — rola junto com a conversa */}
         <div className="ck-hero">
           <AmpliHelpLogo height={30} />
-          <h2 className="ck-hero-title">Ajuda com o {kindLabel}</h2>
-          <p className="ck-hero-sub">{chamado.target?.title || chamado.subject}</p>
+          <h2 className="ck-hero-title">{heroTitle}</h2>
+          <p className="ck-hero-sub">{heroSub}</p>
         </div>
 
         <div className="ck-divider"></div>
@@ -206,6 +215,20 @@ export function ChamadoChat({ chamado, onClose, onChoose }: {
           ))}
         </div>
       </div>
+
+      {onReply && (
+        <div className="ai-composer ck-composer">
+          <div className="ai-inputrow">
+            <textarea className="ai-input" rows={1} value={draft}
+              placeholder="Escreva uma resposta…"
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
+            <button className="ai-send" title="Enviar" onClick={send} disabled={!draft.trim()}>
+              {Icon.arrowRight({ style: { width: 18, height: 18 } })}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

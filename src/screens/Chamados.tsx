@@ -1,22 +1,17 @@
 /* ============================================================
    AMPLI — Tela "Chamados"  (CRUD de chamados de suporte)
    Mesmo look & feel de "Trilhas": datatable com ordenação.
-   Cada linha é um chamado; ao clicar, abre a íntegra da troca
-   de mensagens (thread) com o suporte Fuzzr, onde é possível
-   responder e alterar o status.
+   Cada linha é um chamado; ao clicar, abre a conversa no
+   formato "Fuzzr Help" (ChamadoChat), onde é possível responder.
+   O status é alterado pelo menu de cada linha.
    ============================================================ */
-import { useMemo, useState, useRef, useEffect, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Icon } from "../components/Icon";
-import { renderRich } from "../components/Chamados";
-import { CHAMADO_LIB, CHAMADO_STATUS, CHAMADO_PRIORITY, CHAMADO_CATEGORIES, CAMPAIGNS } from "../data/mockData";
-import type { Chamado, ChamadoMessage, ChamadoStatus, ChamadoPriority } from "../types";
+import { ChamadoChat } from "../components/Chamados";
+import { CHAMADO_LIB, CHAMADO_STATUS, CAMPAIGNS } from "../data/mockData";
+import type { Chamado, ChamadoMessage, ChamadoOption, ChamadoStatus } from "../types";
 
 const STATUS_ORDER: Record<ChamadoStatus, number> = { aberto: 0, andamento: 1, resolvido: 2, fechado: 3 };
-const PRIORITY_ORDER: Record<ChamadoPriority, number> = { baixa: 0, media: 1, alta: 2, urgente: 3 };
-
-function initials(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
-}
 
 // Próximo número de protocolo a partir da lista atual (compartilhado com o
 // fluxo "Preciso de ajuda" em App.tsx).
@@ -25,21 +20,12 @@ export function nextProtocolo(list: Chamado[]): string {
   return "#" + (max + 1);
 }
 
-/* ---- Status / priority chips ---- */
+/* ---- Status chip ---- */
 export function StatusTag({ status, sm }: { status: ChamadoStatus; sm?: boolean }) {
   const s = CHAMADO_STATUS[status];
   return (
     <span className="ch-tag" style={{ height: sm ? 24 : 28, fontSize: sm ? 10.5 : 11.5, color: s.color, borderColor: s.color + "44", background: s.color + "1f" }}>
       <span className="ch-dot" style={{ background: s.color }}></span>{s.name}
-    </span>
-  );
-}
-
-export function PriorityTag({ priority }: { priority: ChamadoPriority }) {
-  const p = CHAMADO_PRIORITY[priority];
-  return (
-    <span className="ch-prio" style={{ color: p.color }}>
-      <span className="ch-prio-bar" style={{ background: p.color }}></span>{p.name}
     </span>
   );
 }
@@ -68,8 +54,6 @@ export function ChamadoTable({ list, onOpen, onMore, sortKey, sortDir, onSort }:
         <thead>
           <tr>
             <SortHead k="subject">Assunto</SortHead>
-            <SortHead k="category">Categoria</SortHead>
-            <SortHead k="priority">Prioridade</SortHead>
             <SortHead k="status">Status</SortHead>
             <SortHead k="msgs" num>Mensagens</SortHead>
             <SortHead k="updated">Atualizado</SortHead>
@@ -91,8 +75,6 @@ export function ChamadoTable({ list, onOpen, onMore, sortKey, sortDir, onSort }:
                   </div>
                   <span className="ch-requester"><span className="mono ch-proto">{c.protocolo}</span> · {c.requester}{c.campaign ? " · " + c.campaign : ""}</span>
                 </td>
-                <td className="mt-td mt-muted">{c.category}</td>
-                <td className="mt-td"><PriorityTag priority={c.priority} /></td>
                 <td className="mt-td"><StatusTag status={c.status} sm /></td>
                 <td className="mt-td num">
                   <span className="ch-msgcount">{Icon.chat({ style: { width: 13, height: 13 } })}{c.messages.length}</span>
@@ -131,102 +113,17 @@ function ChamadoMenu({ pos, resolved, onClose, onOpen, onResolve, onReopen, onDe
   );
 }
 
-/* ---- Thread modal: íntegra da troca de mensagens ---- */
-function ChamadoThread({ chamado, onClose, onReply, onStatus }: {
-  chamado: Chamado; onClose: () => void; onReply: (body: string) => void; onStatus: (s: ChamadoStatus) => void;
-}) {
-  const [draft, setDraft] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [chamado.messages.length]);
-
-  const send = () => {
-    const body = draft.trim();
-    if (!body) return;
-    onReply(body);
-    setDraft("");
-  };
-
-  return (
-    <div className="md-scrim anim-in" onClick={onClose}>
-      <div className="md-box wide ch-thread anim-up" onClick={(e) => e.stopPropagation()}>
-        <div className="md-head ch-thread-head">
-          <div className="ch-thread-headinfo">
-            <div className="ch-thread-meta">
-              <span className="mono ch-proto">{chamado.protocolo}</span>
-              <span className="ac-dot">·</span>
-              <span>{chamado.category}</span>
-              <span className="ac-dot">·</span>
-              <PriorityTag priority={chamado.priority} />
-            </div>
-            <h3 className="md-title ch-thread-title">{chamado.subject}</h3>
-            <p className="md-sub">Aberto em {chamado.openedDate} por {chamado.requester}{chamado.campaign ? " · " + chamado.campaign : ""}</p>
-          </div>
-          <div className="ch-thread-actions">
-            <div className="vp-control ch-status-control">
-              <select className="vp-select" value={chamado.status} onChange={(e) => onStatus(e.target.value as ChamadoStatus)}
-                style={{ color: CHAMADO_STATUS[chamado.status].color }}>
-                {Object.values(CHAMADO_STATUS).map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <span className="vp-select-chev">{Icon.chevDown({ style: { width: 15, height: 15 } })}</span>
-            </div>
-            <button className="icon-btn" onClick={onClose}>{Icon.close()}</button>
-          </div>
-        </div>
-
-        <div className="ch-thread-body" ref={scrollRef}>
-          {chamado.messages.map((m) => (
-            <div key={m.id} className={"ch-msg " + (m.role === "cliente" ? "ch-msg-out" : "ch-msg-in")}>
-              <span className={"ch-avatar " + (m.role === "cliente" ? "ch-avatar-out" : "ch-avatar-in")}>
-                {m.role === "suporte" ? Icon.sparkle({ style: { width: 16, height: 16 } }) : initials(m.author)}
-              </span>
-              <div className="ch-bubble-wrap">
-                <div className="ch-bubble-top">
-                  <span className="ch-msg-author">{m.author}</span>
-                  <span className="ch-msg-time">{m.time}</span>
-                </div>
-                <div className="ch-bubble">{renderRich(m.body)}</div>
-                {m.options && m.options.length > 0 && (
-                  <div className="ch-msg-options">
-                    {m.options.map((o) => <span key={o.label} className="ch-msg-opt">{o.label}</span>)}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="ch-composer">
-          <textarea className="field ch-composer-input" rows={2} value={draft}
-            placeholder="Escreva uma resposta ao suporte…"
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); } }} />
-          <button className="btn btn-primary" disabled={!draft.trim()} onClick={send}>
-            {Icon.arrowRight({ style: { width: 16, height: 16 } })} Enviar
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ---- New chamado modal ---- */
 function NewChamadoModal({ onClose, onCreate }: {
-  onClose: () => void; onCreate: (v: { subject: string; category: string; priority: ChamadoPriority; campaign: string; body: string }) => void;
+  onClose: () => void; onCreate: (v: { subject: string; campaign: string; body: string }) => void;
 }) {
   const [subject, setSubject] = useState("");
-  const [category, setCategory] = useState(CHAMADO_CATEGORIES[0]);
-  const [priority, setPriority] = useState<ChamadoPriority>("media");
   const [campaign, setCampaign] = useState("");
   const [body, setBody] = useState("");
   const ready = subject.trim().length > 0 && body.trim().length > 0;
   const submit = () => {
     if (!ready) return;
-    onCreate({ subject: subject.trim(), category, priority, campaign, body: body.trim() });
+    onCreate({ subject: subject.trim(), campaign, body: body.trim() });
   };
   return (
     <div className="md-scrim anim-in" onClick={onClose}>
@@ -244,26 +141,6 @@ function NewChamadoModal({ onClose, onCreate }: {
             <input className="field" value={subject} autoFocus
               placeholder="Ex.: Ruído de fundo no spot renderizado"
               onChange={(e) => setSubject(e.target.value)} />
-          </div>
-          <div className="tr-form-grid">
-            <div className="tr-form-row" style={{ marginBottom: 0 }}>
-              <label className="tr-form-label">Categoria</label>
-              <div className="vp-control">
-                <select className="vp-select" value={category} onChange={(e) => setCategory(e.target.value)}>
-                  {CHAMADO_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <span className="vp-select-chev">{Icon.chevDown({ style: { width: 15, height: 15 } })}</span>
-              </div>
-            </div>
-            <div className="tr-form-row" style={{ marginBottom: 0 }}>
-              <label className="tr-form-label">Prioridade</label>
-              <div className="vp-control">
-                <select className="vp-select" value={priority} onChange={(e) => setPriority(e.target.value as ChamadoPriority)}>
-                  {Object.values(CHAMADO_PRIORITY).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                </select>
-                <span className="vp-select-chev">{Icon.chevDown({ style: { width: 15, height: 15 } })}</span>
-              </div>
-            </div>
           </div>
           <div className="tr-form-row">
             <label className="tr-form-label">Campanha <span className="ch-opt">(opcional)</span></label>
@@ -335,13 +212,27 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
     });
   };
 
-  const createChamado = ({ subject, category, priority, campaign, body }: {
-    subject: string; category: string; priority: ChamadoPriority; campaign: string; body: string;
+  const choose = (id: string, msgId: string, option: ChamadoOption) => {
+    patch(id, (c) => {
+      const now = Date.now();
+      const reply: ChamadoMessage[] = [
+        { id: "u" + now, role: "cliente", author: c.requester, body: option.label, time: "Agora", ts: now },
+        { id: "f" + now, role: "suporte", author: "Equipe Fuzzr", body: option.reply, time: "Agora", ts: now + 1 },
+      ];
+      const messages = c.messages
+        .map((m) => m.id === msgId ? { ...m, options: undefined } : m)
+        .concat(reply);
+      return { ...c, messages, updatedTs: now, date: "Agora" };
+    });
+  };
+
+  const createChamado = ({ subject, campaign, body }: {
+    subject: string; campaign: string; body: string;
   }) => {
     const now = Date.now();
     const c: Chamado = {
-      id: "ch" + now, protocolo: nextProtocolo(items), subject, status: "aberto", priority,
-      category, requester: "Luciana Zappala", campaign: campaign || undefined,
+      id: "ch" + now, protocolo: nextProtocolo(items), subject, status: "aberto",
+      requester: "Luciana Zappala", campaign: campaign || undefined,
       createdTs: now, openedDate: "Hoje", updatedTs: now, date: "Agora",
       messages: [{ id: "m" + now, role: "cliente", author: "Luciana Zappala", body, time: "Agora", ts: now }],
     };
@@ -373,7 +264,6 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
       if (!ql) return true;
       return c.subject.toLowerCase().includes(ql)
         || c.protocolo.toLowerCase().includes(ql)
-        || c.category.toLowerCase().includes(ql)
         || (c.campaign || "").toLowerCase().includes(ql)
         || c.messages.some((m) => m.body.toLowerCase().includes(ql));
     });
@@ -383,10 +273,7 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
     const arr = [...filtered];
     arr.sort((a, b) => {
       let r: number;
-      if (sortKey === "protocolo") r = (parseInt(a.protocolo.replace("#", ""), 10) || 0) - (parseInt(b.protocolo.replace("#", ""), 10) || 0);
-      else if (sortKey === "subject") r = a.subject.localeCompare(b.subject, "pt");
-      else if (sortKey === "category") r = a.category.localeCompare(b.category, "pt");
-      else if (sortKey === "priority") r = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+      if (sortKey === "subject") r = a.subject.localeCompare(b.subject, "pt");
       else if (sortKey === "status") r = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
       else if (sortKey === "msgs") r = a.messages.length - b.messages.length;
       else r = a.updatedTs - b.updatedTs;
@@ -397,7 +284,7 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
 
   const onSort = (k: string) => {
     if (sortKey === k) { setSortDir((d) => d === "asc" ? "desc" : "asc"); }
-    else { setSortKey(k); setSortDir(k === "subject" || k === "category" ? "asc" : "desc"); }
+    else { setSortKey(k); setSortDir(k === "subject" ? "asc" : "desc"); }
   };
 
   const statusChips: { id: "all" | ChamadoStatus; name: string }[] = [
@@ -427,7 +314,7 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
           <div className="ma-search">
             <span className="ma-search-ic">{Icon.search()}</span>
             <input className="field" style={{ paddingLeft: 42, height: 46 }}
-              placeholder="Filtrar por assunto, protocolo, categoria ou mensagem…"
+              placeholder="Filtrar por assunto, protocolo ou mensagem…"
               value={q} onChange={(e) => setQ(e.target.value)} />
             {q && <button className="ma-clear" onClick={() => setQ("")}>{Icon.close()}</button>}
           </div>
@@ -463,8 +350,9 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
 
       {menu && <ChamadoMenu pos={menu} resolved={menu.c.status === "resolvido" || menu.c.status === "fechado"}
         onClose={closeMenu} onOpen={doOpen} onResolve={doResolve} onReopen={doReopen} onDelete={doDelete} />}
-      {open && <ChamadoThread chamado={open} onClose={() => setOpenId(null)}
-        onReply={(body) => reply(open.id, body)} onStatus={(s) => setStatus(open.id, s)} />}
+      {open && <ChamadoChat chamado={open} onClose={() => setOpenId(null)}
+        onReply={(body) => reply(open.id, body)}
+        onChoose={(msgId, option) => choose(open.id, msgId, option)} />}
       {creating && <NewChamadoModal onClose={() => setCreating(false)} onCreate={createChamado} />}
       {toast && <div className="sp-toast anim-up">{Icon.check({ style: { width: 16, height: 16 } })} {toast}</div>}
     </div>

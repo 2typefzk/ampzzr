@@ -3,7 +3,7 @@
    ============================================================ */
 import type {
   Model, ModelId, Voice, Trilha, LibraryAudio, Trecho, TrilhaGenre, Campaign,
-  Chamado, ChamadoStatus, ChamadoPriority,
+  Chamado, ChamadoStatus,
 } from "../types";
 import spotDark from "../assets/spot-dark.png";
 import spotLight from "../assets/spot-light.png";
@@ -145,22 +145,11 @@ export const CHAMADO_STATUS: Record<ChamadoStatus, { id: ChamadoStatus; name: st
   fechado: { id: "fechado", name: "Fechado", color: "#7d7689" },
 };
 
-export const CHAMADO_PRIORITY: Record<ChamadoPriority, { id: ChamadoPriority; name: string; color: string }> = {
-  baixa: { id: "baixa", name: "Baixa", color: "#7d7689" },
-  media: { id: "media", name: "Média", color: "#5aa6c9" },
-  alta: { id: "alta", name: "Alta", color: "#e8602a" },
-  urgente: { id: "urgente", name: "Urgente", color: "#ff6b6b" },
-};
-
-export const CHAMADO_CATEGORIES: string[] = [
-  "Áudio", "Trilha", "Técnico", "Financeiro", "Conta", "Dúvida",
-];
-
 // Seeded library of chamados — cada um com a íntegra da troca de mensagens.
 export const CHAMADO_LIB: Chamado[] = [
   {
     id: "ch1820", protocolo: "#1820", subject: "Ruído de fundo no spot renderizado",
-    status: "andamento", priority: "alta", category: "Áudio", requester: "Luciana Zappala",
+    status: "andamento", requester: "Luciana Zappala",
     campaign: "Semana do Cliente",
     createdTs: Date.parse("2026-07-09T14:02"), openedDate: "9 jul",
     updatedTs: Date.parse("2026-07-10T16:40"), date: "Ontem, 16:40",
@@ -173,7 +162,7 @@ export const CHAMADO_LIB: Chamado[] = [
   },
   {
     id: "ch1819", protocolo: "#1819", subject: "Solicitar nova voz feminina para carro de som",
-    status: "aberto", priority: "media", category: "Dúvida", requester: "Luciana Zappala",
+    status: "aberto", requester: "Luciana Zappala",
     campaign: "Arraiá da Cidade",
     createdTs: Date.parse("2026-07-10T09:12"), openedDate: "10 jul",
     updatedTs: Date.parse("2026-07-10T09:12"), date: "Ontem, 09:12",
@@ -183,7 +172,7 @@ export const CHAMADO_LIB: Chamado[] = [
   },
   {
     id: "ch1817", protocolo: "#1817", subject: "Fatura de junho com valor divergente",
-    status: "resolvido", priority: "alta", category: "Financeiro", requester: "Luciana Zappala",
+    status: "resolvido", requester: "Luciana Zappala",
     createdTs: Date.parse("2026-07-02T10:30"), openedDate: "2 jul",
     updatedTs: Date.parse("2026-07-05T11:15"), date: "5 jul",
     messages: [
@@ -195,7 +184,7 @@ export const CHAMADO_LIB: Chamado[] = [
   },
   {
     id: "ch1815", protocolo: "#1815", subject: "Exportar lote em formato WAV",
-    status: "andamento", priority: "baixa", category: "Técnico", requester: "Luciana Zappala",
+    status: "andamento", requester: "Luciana Zappala",
     campaign: "Black do Meio do Ano",
     createdTs: Date.parse("2026-07-08T15:50"), openedDate: "8 jul",
     updatedTs: Date.parse("2026-07-09T10:05"), date: "9 jul",
@@ -206,7 +195,7 @@ export const CHAMADO_LIB: Chamado[] = [
   },
   {
     id: "ch1811", protocolo: "#1811", subject: "Trilha “Lounge Sofisticado” sem prévia",
-    status: "resolvido", priority: "media", category: "Trilha", requester: "Luciana Zappala",
+    status: "resolvido", requester: "Luciana Zappala",
     campaign: "Dia das Mães",
     createdTs: Date.parse("2026-06-28T11:20"), openedDate: "28 jun",
     updatedTs: Date.parse("2026-06-29T09:30"), date: "29 jun",
@@ -217,7 +206,7 @@ export const CHAMADO_LIB: Chamado[] = [
   },
   {
     id: "ch1804", protocolo: "#1804", subject: "Adicionar usuário à conta da Casas Bahia",
-    status: "fechado", priority: "baixa", category: "Conta", requester: "Luciana Zappala",
+    status: "fechado", requester: "Luciana Zappala",
     createdTs: Date.parse("2026-06-20T14:00"), openedDate: "20 jun",
     updatedTs: Date.parse("2026-06-21T08:10"), date: "21 jun",
     messages: [
@@ -228,7 +217,7 @@ export const CHAMADO_LIB: Chamado[] = [
   },
   {
     id: "ch1798", protocolo: "#1798", subject: "Urgente: áudio aprovado sumiu da campanha",
-    status: "aberto", priority: "urgente", category: "Técnico", requester: "Luciana Zappala",
+    status: "aberto", requester: "Luciana Zappala",
     campaign: "Liquida Total",
     createdTs: Date.parse("2026-07-11T08:05"), openedDate: "Hoje",
     updatedTs: Date.parse("2026-07-11T08:05"), date: "Hoje, 08:05",

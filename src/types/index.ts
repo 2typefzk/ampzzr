@@ -97,7 +97,6 @@ export interface Trecho {
    Modelo unificado: a tela CRUD lista chamados, e o fluxo
    "Preciso de ajuda" (editores) cria chamados aqui também. */
 export type ChamadoStatus = "aberto" | "andamento" | "resolvido" | "fechado";
-export type ChamadoPriority = "baixa" | "media" | "alta" | "urgente";
 export type ChamadoRole = "cliente" | "suporte";
 export type ChamadoTargetKind = "audio" | "lote";
 
@@ -128,8 +127,6 @@ export interface Chamado {
   protocolo: string;
   subject: string;
   status: ChamadoStatus;
-  priority: ChamadoPriority;
-  category: string;
   requester: string;
   campaign?: string;
   target?: HelpTarget;       // definido quando aberto de um Áudio/Lote
