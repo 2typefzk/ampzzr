@@ -93,6 +93,50 @@ export interface Trecho {
   variacoes?: string[];
 }
 
+/* ---- Chamados (suporte / support tickets) ----
+   Modelo unificado: a tela CRUD lista chamados, e o fluxo
+   "Preciso de ajuda" (editores) cria chamados aqui também. */
+export type ChamadoStatus = "aberto" | "andamento" | "resolvido" | "fechado";
+export type ChamadoRole = "cliente" | "suporte";
+export type ChamadoTargetKind = "audio" | "lote";
+
+// Alvo (Áudio/Lote) de onde um chamado de ajuda foi aberto.
+export interface HelpTarget {
+  kind: ChamadoTargetKind;
+  title: string;
+}
+
+// Botões de auto-ajuda oferecidos numa mensagem do suporte.
+export interface ChamadoOption {
+  label: string;
+  reply: string;
+}
+
+export interface ChamadoMessage {
+  id: string;
+  role: ChamadoRole;         // cliente = usuário · suporte = Fuzzr
+  author: string;
+  body: string;              // aceita marcação inline: **negrito** e _link_
+  time: string;
+  ts: number;
+  options?: ChamadoOption[]; // presente só no chat de ajuda roteirizado
+}
+
+export interface Chamado {
+  id: string;
+  protocolo: string;
+  subject: string;
+  status: ChamadoStatus;
+  requester: string;
+  campaign?: string;
+  target?: HelpTarget;       // definido quando aberto de um Áudio/Lote
+  createdTs: number;
+  openedDate: string;
+  updatedTs: number;
+  date: string;
+  messages: ChamadoMessage[];
+}
+
 export interface TweakSettings {
   accent: string;
   theme: "escuro" | "claro";
@@ -109,33 +153,4 @@ export interface BatchRow {
   id: string;
   name: string;
   status: "pronto" | "aprovado" | "modificado";
-}
-
-/* ---- Chamados (suporte / help desk) ---- */
-export type ChamadoTargetKind = "audio" | "lote";
-
-export interface HelpTarget {
-  kind: ChamadoTargetKind;
-  title: string;
-}
-
-export interface ChamadoOption {
-  label: string;
-  reply: string;
-}
-
-export interface ChamadoMessage {
-  id: string;
-  role: "user" | "fuzzr";
-  content: string; // supports simple inline markup: **negrito** e _link_
-  options?: ChamadoOption[];
-}
-
-export interface Chamado {
-  id: string;
-  num: number;
-  targetKind: ChamadoTargetKind;
-  targetTitle: string;
-  messages: ChamadoMessage[];
-  ts: number;
 }

@@ -8,14 +8,16 @@ import { LoginScreen, WelcomeModal, TourGuide } from "./screens/Auth";
 import { Dashboard } from "./screens/Dashboard";
 import { MyAudios } from "./screens/MyAudios";
 import { Trilhas } from "./screens/Trilhas";
+import { Chamados } from "./screens/Chamados";
 import { Campaigns, CampaignDetail, CampaignModal } from "./screens/Campaigns";
 import { Settings } from "./screens/Settings";
 import { CreateFlow, type ImportKind } from "./screens/create-flow/CreateFlow";
 import { HelpTicketModal, ChamadoChat, createChamado } from "./components/Chamados";
-import { TRILHA_LIB, CAMPAIGN_LIB } from "./data/mockData";
-import type { Campaign, Chamado, ChamadoOption, HelpTarget, LibraryAudio, Trilha, TweakSettings } from "./types";
+import { nextProtocolo } from "./screens/Chamados";
+import { TRILHA_LIB, CAMPAIGN_LIB, CHAMADO_LIB } from "./data/mockData";
+import type { Campaign, Chamado, ChamadoMessage, ChamadoOption, HelpTarget, LibraryAudio, Trilha, TweakSettings } from "./types";
 
-const USER_NAME = "Luciana";
+const USER_NAME = "Luciana Zappala";
 
 const TWEAK_DEFAULTS: TweakSettings = {
   accent: "#e8602a",
@@ -29,7 +31,7 @@ const TWEAK_DEFAULTS: TweakSettings = {
   heroanim: "on",
 };
 
-type Route = "dashboard" | "audios" | "trilhas" | "campanhas" | "campanha" | "settings";
+type Route = "dashboard" | "audios" | "trilhas" | "chamados" | "campanhas" | "campanha" | "settings";
 
 function App() {
   const [t, setT] = useState<TweakSettings>(TWEAK_DEFAULTS);
@@ -40,6 +42,7 @@ function App() {
   const [editAudio, setEditAudio] = useState<LibraryAudio | null>(null);
   const [importRoteiro, setImportRoteiro] = useState<{ text: string | null; kind: ImportKind } | null>(null);
   const [trilhas, setTrilhas] = useState<Trilha[]>(() => TRILHA_LIB);
+  const [chamados, setChamados] = useState<Chamado[]>(() => CHAMADO_LIB);
   const [campaigns, setCampaigns] = useState<Campaign[]>(() => CAMPAIGN_LIB);
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [campaignModal, setCampaignModal] = useState<Campaign | {} | null>(null);
@@ -50,15 +53,15 @@ function App() {
   const [welcome, setWelcome] = useState(false);
   const [tour, setTour] = useState(false);
 
-  // ---- Chamados (suporte) ----
-  const [chamados, setChamados] = useState<Chamado[]>([]);
+  // ---- Chamados de ajuda ("Preciso de ajuda" nos editores) ----
+  // Compartilham o mesmo estado `chamados` da tela CRUD.
   const [helpTarget, setHelpTarget] = useState<HelpTarget | null>(null);
   const [activeChamadoId, setActiveChamadoId] = useState<string | null>(null);
 
   const requestHelp = (target: HelpTarget) => setHelpTarget(target);
   const submitHelp = (text: string) => {
     if (!helpTarget) return;
-    const ch = createChamado(helpTarget, text, USER_NAME);
+    const ch = createChamado(helpTarget, text, USER_NAME, nextProtocolo(chamados));
     setChamados((list) => [ch, ...list]);
     setHelpTarget(null);
     setActiveChamadoId(ch.id);
@@ -66,13 +69,24 @@ function App() {
   const chooseChamadoOption = (chamadoId: string, msgId: string, option: ChamadoOption) => {
     setChamados((list) => list.map((c) => {
       if (c.id !== chamadoId) return c;
+      const now = Date.now();
+      const reply: ChamadoMessage[] = [
+        { id: "u" + now, role: "cliente", author: c.requester, body: option.label, time: "Agora", ts: now },
+        { id: "f" + now, role: "suporte", author: "Equipe Fuzzr", body: option.reply, time: "Agora", ts: now + 1 },
+      ];
       const messages = c.messages
         .map((m) => m.id === msgId ? { ...m, options: undefined } : m)
-        .concat(
-          { id: "u" + Date.now(), role: "user", content: option.label },
-          { id: "f" + Date.now(), role: "fuzzr", content: option.reply },
-        );
-      return { ...c, messages };
+        .concat(reply);
+      return { ...c, messages, updatedTs: now, date: "Agora" };
+    }));
+  };
+  const replyChamado = (chamadoId: string, body: string) => {
+    setChamados((list) => list.map((c) => {
+      if (c.id !== chamadoId) return c;
+      const now = Date.now();
+      const msg: ChamadoMessage = { id: "u" + now, role: "cliente", author: c.requester, body, time: "Agora", ts: now };
+      const reopened = c.status === "resolvido" || c.status === "fechado";
+      return { ...c, messages: [...c.messages, msg], updatedTs: now, date: "Agora", status: reopened ? "aberto" : c.status };
     }));
   };
   const activeChamado = chamados.find((c) => c.id === activeChamadoId) || null;
@@ -115,7 +129,7 @@ function App() {
     <div className="app-root">
       <TopBar t={t} onNew={startNew} onOpenSettings={() => setRoute("settings")} onLogout={() => { setAuthed(false); setWelcome(false); setTour(false); setRoute("audios"); setAmpliaOpen(false); }} />
       <div className="app-body">
-        <Sidebar route={route} onNavigate={(id) => { if (id === "audios" || id === "dashboard" || id === "trilhas" || id === "campanhas") setRoute(id as Route); }} onOpenAmplia={() => setAmpliaOpen(true)} ampliaEnabled={ampliaEnabled} />
+        <Sidebar route={route} onNavigate={(id) => { if (id === "audios" || id === "dashboard" || id === "trilhas" || id === "chamados" || id === "campanhas") setRoute(id as Route); }} onOpenAmplia={() => setAmpliaOpen(true)} ampliaEnabled={ampliaEnabled} />
         {route === "settings" ?
           <Settings t={t} setTweak={setTweak} onClose={() => setRoute("audios")} /> :
           route === "dashboard" ?
@@ -123,6 +137,8 @@ function App() {
             route === "trilhas" ?
               <Trilhas theme={t.theme} items={trilhas} setItems={setTrilhas}
                 onOpenCampaign={openCampaignByName} /> :
+              route === "chamados" ?
+                <Chamados items={chamados} setItems={setChamados} /> :
               route === "campanhas" ?
                 <Campaigns campaigns={campaigns} onOpen={openCampaign} onCreate={() => setCampaignModal({})} /> :
                 route === "campanha" ?
@@ -163,6 +179,7 @@ function App() {
       {helpTarget && <HelpTicketModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
       {activeChamado && <ChamadoChat chamado={activeChamado}
         onClose={() => setActiveChamadoId(null)}
+        onReply={(body) => replyChamado(activeChamado.id, body)}
         onChoose={(msgId, option) => chooseChamadoOption(activeChamado.id, msgId, option)} />}
     </div>);
 }

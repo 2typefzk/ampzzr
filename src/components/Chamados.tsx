@@ -55,7 +55,7 @@ export function TicketBadge({ size = 34 }: { size?: number }) {
 }
 
 /* ---- inline rich text: **negrito** e _link_ ---- */
-function renderRich(text: string): ReactNode[] {
+export function renderRich(text: string): ReactNode[] {
   const out: ReactNode[] = [];
   const re = /(\*\*[^*]+\*\*|_[^_]+_)/g;
   let last = 0, m: RegExpExecArray | null, key = 0;
@@ -70,22 +70,21 @@ function renderRich(text: string): ReactNode[] {
   return out;
 }
 
-let chamadoSeq = 0;
-
-/* ---- Cria um novo chamado com o histórico inicial ---- */
-export function createChamado(target: HelpTarget, userMessage: string, userName: string): Chamado {
+/* ---- Cria um novo chamado (modelo unificado) com o histórico inicial.
+   `protocolo` é calculado por quem chama (App), a partir da lista atual. ---- */
+export function createChamado(target: HelpTarget, userMessage: string, userName: string, protocolo: string): Chamado {
   const kindLabel = target.kind === "audio" ? "Áudio" : "Lote";
   const now = Date.now();
-  chamadoSeq += 1;
+  const firstName = userName.split(/\s+/)[0] || userName;
   const messages: ChamadoMessage[] = [
-    { id: "m1", role: "user", content: userMessage.trim() },
+    { id: "m1", role: "cliente", author: userName, body: userMessage.trim(), time: "Agora", ts: now },
     {
-      id: "m2", role: "fuzzr",
-      content: `Olá ${userName}, tudo bem? Recebemos sua solicitação por aqui. Iremos trabalhar no seu ${kindLabel} e avisaremos quando ficar pronto.`,
+      id: "m2", role: "suporte", author: "Equipe Fuzzr", time: "Agora", ts: now + 1,
+      body: `Olá ${firstName}, tudo bem? Recebemos sua solicitação por aqui. Iremos trabalhar no seu ${kindLabel} e avisaremos quando ficar pronto.`,
     },
     {
-      id: "m3", role: "fuzzr",
-      content: "Você pode retornar aqui _usando este link_ ou pelo menu principal, opção **Chamados**. Ajudamos com mais alguma coisa?",
+      id: "m3", role: "suporte", author: "Equipe Fuzzr", time: "Agora", ts: now + 2,
+      body: "Você pode retornar aqui _usando este link_ ou pelo menu principal, opção **Chamados**. Ajudamos com mais alguma coisa?",
       options: [
         { label: "Opções de Auto-ajuda", reply: "Boa! Você pode acessar a Documentação, FAQ e Tutoriais do Ampli _clicando aqui_." },
         { label: "Não, obrigado!", reply: "Ok, então! Fique à vontade para fechar esta janela. Até já!" },
@@ -94,11 +93,16 @@ export function createChamado(target: HelpTarget, userMessage: string, userName:
   ];
   return {
     id: "ch" + now,
-    num: 1820 + chamadoSeq,
-    targetKind: target.kind,
-    targetTitle: target.title,
+    protocolo,
+    subject: `Ajuda com o ${kindLabel} ${target.title}`,
+    status: "aberto",
+    requester: userName,
+    target,
+    createdTs: now,
+    openedDate: "Hoje",
+    updatedTs: now,
+    date: "Agora",
     messages,
-    ts: now,
   };
 }
 
@@ -141,25 +145,36 @@ export function HelpTicketModal({ target, onClose, onSubmit }: {
 /* ============================================================
    Janela — Chat de Chamado (variação do Ampl.IA)
    ============================================================ */
-export function ChamadoChat({ chamado, onClose, onChoose }: {
+export function ChamadoChat({ chamado, onClose, onChoose, onReply }: {
   chamado: Chamado; onClose: () => void; onChoose: (msgId: string, option: ChamadoOption) => void;
+  onReply?: (body: string) => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const kindLabel = chamado.targetKind === "audio" ? "Áudio" : "Lote";
+  const [draft, setDraft] = useState("");
+  // Chamados abertos de um Áudio/Lote têm alvo; os demais mostram o assunto.
+  const heroTitle = chamado.target ? "Ajuda com o " + (chamado.target.kind === "lote" ? "Lote" : "Áudio") : chamado.subject;
+  const heroSub = chamado.target ? chamado.target.title : "Aberto em " + chamado.openedDate + " por " + chamado.requester;
 
   useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [chamado.messages]);
 
+  const send = () => {
+    const body = draft.trim();
+    if (!body || !onReply) return;
+    onReply(body);
+    setDraft("");
+  };
+
   return (
-    <div className="ai-win ck-win" role="dialog" aria-label={"Chamado " + chamado.num}>
+    <div className="ai-win ck-win" role="dialog" aria-label={"Chamado " + chamado.protocolo}>
       <header className="ai-head ck-head">
         <div className="ai-head-id">
           <TicketBadge size={38} />
           <div className="ai-head-txt">
             <div className="ai-head-name">Fuzzr Help!</div>
-            <div className="ai-head-status">Chamado #{chamado.num}</div>
+            <div className="ai-head-status">Chamado {chamado.protocolo}</div>
           </div>
         </div>
         <div className="ai-head-actions">
@@ -173,8 +188,8 @@ export function ChamadoChat({ chamado, onClose, onChoose }: {
         {/* header do chat — rola junto com a conversa */}
         <div className="ck-hero">
           <AmpliHelpLogo height={30} />
-          <h2 className="ck-hero-title">Ajuda com o {kindLabel}</h2>
-          <p className="ck-hero-sub">{chamado.targetTitle}</p>
+          <h2 className="ck-hero-title">{heroTitle}</h2>
+          <p className="ck-hero-sub">{heroSub}</p>
         </div>
 
         <div className="ck-divider"></div>
@@ -183,9 +198,9 @@ export function ChamadoChat({ chamado, onClose, onChoose }: {
         <div className="ai-thread ck-thread">
           {chamado.messages.map((m) => (
             <div key={m.id}>
-              <div className={"ai-msg " + (m.role === "user" ? "user" : "assistant")}>
-                {m.role === "fuzzr" && <TicketBadge size={28} />}
-                <div className="ai-bubble">{renderRich(m.content)}</div>
+              <div className={"ai-msg " + (m.role === "cliente" ? "user" : "assistant")}>
+                {m.role === "suporte" && <TicketBadge size={28} />}
+                <div className="ai-bubble">{renderRich(m.body)}</div>
               </div>
               {m.options && m.options.length > 0 && (
                 <div className="ck-options">
@@ -200,6 +215,20 @@ export function ChamadoChat({ chamado, onClose, onChoose }: {
           ))}
         </div>
       </div>
+
+      {onReply && (
+        <div className="ai-composer ck-composer">
+          <div className="ai-inputrow">
+            <textarea className="ai-input" rows={1} value={draft}
+              placeholder="Escreva uma resposta…"
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }} />
+            <button className="ai-send" title="Enviar" onClick={send} disabled={!draft.trim()}>
+              {Icon.arrowRight({ style: { width: 18, height: 18 } })}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
