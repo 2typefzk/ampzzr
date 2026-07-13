@@ -432,11 +432,12 @@ export interface DashboardProps {
   onStartBatch: () => void;
   onOpen: (a: LibraryAudio) => void;
   onNavigate: (route: string) => void;
+  onOpenChamado?: () => void;
   heroAnim: boolean;
 }
 
 /* ---------- Dashboard page ---------- */
-export function Dashboard({ userName, onNew, onStartRoteiro, onStartBatch, onOpen, onNavigate, heroAnim }: DashboardProps) {
+export function Dashboard({ userName, onNew, onStartRoteiro, onStartBatch, onOpen, onNavigate, onOpenChamado, heroAnim }: DashboardProps) {
   const [toast, setToast] = useState<string | null>(null);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
 
@@ -475,7 +476,7 @@ export function Dashboard({ userName, onNew, onStartRoteiro, onStartBatch, onOpe
           <RecentProjects items={recent} onOpen={onOpen} onSeeAll={() => onNavigate && onNavigate("audios")} />
           <HelpBanner
             onDocs={() => flash("Abrindo a documentação…")}
-            onSupport={() => flash("Pedido de apoio enviado — nossa equipe vai te responder")} />
+            onSupport={() => onOpenChamado ? onOpenChamado() : flash("Pedido de apoio enviado — nossa equipe vai te responder")} />
 
         </div>
       </div>

@@ -7,7 +7,7 @@
    ============================================================ */
 import { useMemo, useState, type ReactNode } from "react";
 import { Icon } from "../components/Icon";
-import { ChamadoChat, ChamadoModal } from "../components/Chamados";
+import { ChamadoChat, ChamadoModal, createPlainChamado } from "../components/Chamados";
 import { CHAMADO_LIB, CHAMADO_STATUS } from "../data/mockData";
 import type { Chamado, ChamadoMessage, ChamadoOption, ChamadoStatus } from "../types";
 
@@ -174,13 +174,7 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
   const createChamado = ({ subject, campaign, body }: {
     subject: string; campaign: string; body: string;
   }) => {
-    const now = Date.now();
-    const c: Chamado = {
-      id: "ch" + now, protocolo: nextProtocolo(items), subject, status: "aberto",
-      requester: "Luciana Zappala", campaign: campaign || undefined,
-      createdTs: now, openedDate: "Hoje", updatedTs: now, date: "Agora",
-      messages: [{ id: "m" + now, role: "cliente", author: "Luciana Zappala", body, time: "Agora", ts: now }],
-    };
+    const c = createPlainChamado({ subject, campaign, body, userName: "Luciana Zappala", protocolo: nextProtocolo(items) });
     setItems((list) => [c, ...list]);
     setSortKey("updated"); setSortDir("desc");
     setCreating(false);

@@ -12,7 +12,7 @@ import { Chamados } from "./screens/Chamados";
 import { Campaigns, CampaignDetail, CampaignModal } from "./screens/Campaigns";
 import { Settings } from "./screens/Settings";
 import { CreateFlow, type ImportKind } from "./screens/create-flow/CreateFlow";
-import { ChamadoModal, ChamadoChat, createChamado } from "./components/Chamados";
+import { ChamadoModal, ChamadoChat, createChamado, createPlainChamado } from "./components/Chamados";
 import { nextProtocolo } from "./screens/Chamados";
 import { TRILHA_LIB, CAMPAIGN_LIB, CHAMADO_LIB } from "./data/mockData";
 import type { Campaign, Chamado, ChamadoMessage, ChamadoOption, HelpTarget, LibraryAudio, Trilha, TweakSettings } from "./types";
@@ -53,12 +53,19 @@ function App() {
   const [welcome, setWelcome] = useState(false);
   const [tour, setTour] = useState(false);
 
-  // ---- Chamados de ajuda ("Preciso de ajuda" nos editores) ----
+  // ---- Chamados de ajuda ("Preciso de ajuda" nos editores + gatilho do Dashboard) ----
   // Compartilham o mesmo estado `chamados` da tela CRUD.
   const [helpTarget, setHelpTarget] = useState<HelpTarget | null>(null);
+  const [creatingChamado, setCreatingChamado] = useState(false);
   const [activeChamadoId, setActiveChamadoId] = useState<string | null>(null);
 
   const requestHelp = (target: HelpTarget) => setHelpTarget(target);
+  const submitNewChamado = ({ subject, campaign, body }: { subject: string; campaign: string; body: string }) => {
+    const ch = createPlainChamado({ subject, campaign, body, userName: USER_NAME, protocolo: nextProtocolo(chamados) });
+    setChamados((list) => [ch, ...list]);
+    setCreatingChamado(false);
+    setActiveChamadoId(ch.id);
+  };
   const submitHelp = ({ subject, campaign, body }: { subject: string; campaign: string; body: string }) => {
     if (!helpTarget) return;
     const ch = createChamado({ subject, campaign, body, target: helpTarget, userName: USER_NAME, protocolo: nextProtocolo(chamados) });
@@ -133,7 +140,7 @@ function App() {
         {route === "settings" ?
           <Settings t={t} setTweak={setTweak} onClose={() => setRoute("audios")} /> :
           route === "dashboard" ?
-            <Dashboard userName="Luciana" heroAnim={t.heroanim !== "off"} onNew={startNew} onStartRoteiro={startFromRoteiro} onStartBatch={startBatch} onOpen={openAudio} onNavigate={(r) => setRoute(r as Route)} /> :
+            <Dashboard userName="Luciana" heroAnim={t.heroanim !== "off"} onNew={startNew} onStartRoteiro={startFromRoteiro} onStartBatch={startBatch} onOpen={openAudio} onNavigate={(r) => setRoute(r as Route)} onOpenChamado={() => setCreatingChamado(true)} /> :
             route === "trilhas" ?
               <Trilhas theme={t.theme} items={trilhas} setItems={setTrilhas}
                 onOpenCampaign={openCampaignByName} /> :
@@ -177,6 +184,7 @@ function App() {
         onClose={() => setCampaignModal(null)} onSave={saveCampaign} />}
 
       {helpTarget && <ChamadoModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
+      {creatingChamado && <ChamadoModal onClose={() => setCreatingChamado(false)} onSubmit={submitNewChamado} />}
       {activeChamado && <ChamadoChat chamado={activeChamado}
         onClose={() => setActiveChamadoId(null)}
         onReply={(body) => replyChamado(activeChamado.id, body)}

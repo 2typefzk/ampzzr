@@ -112,6 +112,27 @@ export function createChamado({ subject, campaign, body, target, userName, proto
   };
 }
 
+/* ---- Cria um chamado avulso (não vinculado a um Áudio/Lote), com apenas a
+   mensagem do usuário. Usado em "Novo chamado" e no gatilho do Dashboard. ---- */
+export function createPlainChamado({ subject, campaign, body, userName, protocolo }: {
+  subject: string; campaign: string; body: string; userName: string; protocolo: string;
+}): Chamado {
+  const now = Date.now();
+  return {
+    id: "ch" + now,
+    protocolo,
+    subject,
+    status: "aberto",
+    requester: userName,
+    campaign: campaign || undefined,
+    createdTs: now,
+    openedDate: "Hoje",
+    updatedTs: now,
+    date: "Agora",
+    messages: [{ id: "m" + now, role: "cliente", author: userName, body, time: "Agora", ts: now }],
+  };
+}
+
 /* ============================================================
    Modal padrão — Abrir chamado
    Usado em "Novo chamado" (sem target) e nos gatilhos "Preciso de
