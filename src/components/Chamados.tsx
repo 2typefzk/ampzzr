@@ -1,11 +1,13 @@
 /* ============================================================
    AMPLI — Chamados (suporte / help desk)
-   - HelpTicketModal: "Abrir chamado" (disparado por "Preciso de ajuda")
+   - ChamadoModal: modal padrão de abertura de chamado, usado tanto
+     em "Novo chamado" quanto nos gatilhos "Preciso de ajuda".
    - ChamadoChat: janela de chat do chamado, uma variação do
      visual do Ampl.IA usando a cor primária do app.
    ============================================================ */
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { Icon } from "./Icon";
+import { CAMPAIGNS } from "../data/mockData";
 import type { Chamado, ChamadoMessage, ChamadoOption, HelpTarget } from "../types";
 
 /* ---- "Fuzzr Help!" wordmark (recolore com o accent via currentColor) ---- */
@@ -70,14 +72,17 @@ export function renderRich(text: string): ReactNode[] {
   return out;
 }
 
-/* ---- Cria um novo chamado (modelo unificado) com o histórico inicial.
+/* ---- Cria um chamado de ajuda (aberto de um Áudio/Lote) com o histórico
+   roteirizado do Fuzzr Help. Assunto/campanha/mensagem vêm do ChamadoModal;
    `protocolo` é calculado por quem chama (App), a partir da lista atual. ---- */
-export function createChamado(target: HelpTarget, userMessage: string, userName: string, protocolo: string): Chamado {
+export function createChamado({ subject, campaign, body, target, userName, protocolo }: {
+  subject: string; campaign: string; body: string; target: HelpTarget; userName: string; protocolo: string;
+}): Chamado {
   const kindLabel = target.kind === "audio" ? "Áudio" : "Lote";
   const now = Date.now();
   const firstName = userName.split(/\s+/)[0] || userName;
   const messages: ChamadoMessage[] = [
-    { id: "m1", role: "cliente", author: userName, body: userMessage.trim(), time: "Agora", ts: now },
+    { id: "m1", role: "cliente", author: userName, body: body.trim(), time: "Agora", ts: now },
     {
       id: "m2", role: "suporte", author: "Equipe Fuzzr", time: "Agora", ts: now + 1,
       body: `Olá ${firstName}, tudo bem? Recebemos sua solicitação por aqui. Iremos trabalhar no seu ${kindLabel} e avisaremos quando ficar pronto.`,
@@ -94,9 +99,10 @@ export function createChamado(target: HelpTarget, userMessage: string, userName:
   return {
     id: "ch" + now,
     protocolo,
-    subject: `Ajuda com o ${kindLabel} ${target.title}`,
+    subject,
     status: "aberto",
     requester: userName,
+    campaign: campaign || undefined,
     target,
     createdTs: now,
     openedDate: "Hoje",
@@ -107,34 +113,61 @@ export function createChamado(target: HelpTarget, userMessage: string, userName:
 }
 
 /* ============================================================
-   Modal — Abrir chamado
+   Modal padrão — Abrir chamado
+   Usado em "Novo chamado" (sem target) e nos gatilhos "Preciso de
+   ajuda" dos editores (com target = Áudio/Lote em edição). Quando há
+   target, o assunto e a campanha já vêm pré-preenchidos.
    ============================================================ */
-export function HelpTicketModal({ target, onClose, onSubmit }: {
-  target: HelpTarget; onClose: () => void; onSubmit: (text: string) => void;
+export function ChamadoModal({ target, onClose, onSubmit }: {
+  target?: HelpTarget | null;
+  onClose: () => void;
+  onSubmit: (v: { subject: string; campaign: string; body: string }) => void;
 }) {
-  const kindLabel = target.kind === "audio" ? "Áudio" : "Lote";
-  const [text, setText] = useState(`Olá, preciso de ajuda com o ${kindLabel} ${target.title}`);
-  const submit = () => { if (text.trim()) onSubmit(text.trim()); };
+  const kindLabel = target ? (target.kind === "lote" ? "Lote" : "Áudio") : "";
+  const [subject, setSubject] = useState(target ? `Ajuda com o ${kindLabel} ${target.title}` : "");
+  const [campaign, setCampaign] = useState(target?.campaign || "");
+  const [body, setBody] = useState("");
+  // Garante que a campanha pré-selecionada apareça mesmo se não estiver na lista base.
+  const campaignOptions = [...new Set([target?.campaign, ...CAMPAIGNS].filter(Boolean) as string[])];
+  const ready = subject.trim().length > 0 && body.trim().length > 0;
+  const submit = () => { if (ready) onSubmit({ subject: subject.trim(), campaign, body: body.trim() }); };
 
   return (
-    <div className="md-scrim ck-modal-scrim" onMouseDown={onClose}>
-      <div className="md-box ck-modal anim-pop" onMouseDown={(e) => e.stopPropagation()}>
+    <div className="md-scrim anim-in" onClick={onClose}>
+      <div className="md-box wide anim-up" onClick={(e) => e.stopPropagation()}>
         <div className="md-head">
           <div>
-            <div className="u-label">Preciso de Ajuda</div>
-            <h2 className="md-title" style={{ paddingTop: 8 }}>Abrir chamado</h2>
-            <p className="md-sub">{kindLabel} {target.title}</p>
+            <h3 className="md-title">Novo chamado</h3>
+            <p className="md-sub">Precisa de ajuda? Bora acionar a equipe Fuzzr.</p>
           </div>
-          <button className="icon-btn" onClick={onClose}>{Icon.close({ style: { width: 18, height: 18 } })}</button>
+          <button className="icon-btn" onClick={onClose}>{Icon.close()}</button>
         </div>
         <div className="md-body">
-          <textarea className="field ck-modal-textarea" value={text} autoFocus rows={4}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(); }} />
-          <div className="ck-modal-foot">
-            <button className="btn btn-primary btn-lg" disabled={!text.trim()} onClick={submit}>
-              Enviar {Icon.chat({ style: { width: 16, height: 16 } })}
-            </button>
+          <div className="tr-form-row">
+            <label className="tr-form-label">Assunto</label>
+            <input className="field" value={subject} autoFocus={!target}
+              placeholder="Ex.: Ruído de fundo no spot renderizado"
+              onChange={(e) => setSubject(e.target.value)} />
+          </div>
+          <div className="tr-form-row">
+            <label className="tr-form-label">Campanha <span className="ch-opt">(opcional)</span></label>
+            <div className="vp-control">
+              <select className="vp-select" value={campaign} onChange={(e) => setCampaign(e.target.value)}>
+                <option value="">Sem campanha</option>
+                {campaignOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <span className="vp-select-chev">{Icon.chevDown({ style: { width: 15, height: 15 } })}</span>
+            </div>
+          </div>
+          <div className="tr-form-row">
+            <label className="tr-form-label">Mensagem</label>
+            <textarea className="field ch-newmsg" rows={4} value={body} autoFocus={!!target}
+              placeholder="Explique o que você precisa com o máximo de detalhes…"
+              onChange={(e) => setBody(e.target.value)} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 22 }}>
+            <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
+            <button className="btn btn-primary" disabled={!ready} onClick={submit}>{Icon.plus()} Abrir chamado</button>
           </div>
         </div>
       </div>

@@ -7,8 +7,8 @@
    ============================================================ */
 import { useMemo, useState, type ReactNode } from "react";
 import { Icon } from "../components/Icon";
-import { ChamadoChat } from "../components/Chamados";
-import { CHAMADO_LIB, CHAMADO_STATUS, CAMPAIGNS } from "../data/mockData";
+import { ChamadoChat, ChamadoModal } from "../components/Chamados";
+import { CHAMADO_LIB, CHAMADO_STATUS } from "../data/mockData";
 import type { Chamado, ChamadoMessage, ChamadoOption, ChamadoStatus } from "../types";
 
 const STATUS_ORDER: Record<ChamadoStatus, number> = { aberto: 0, andamento: 1, resolvido: 2, fechado: 3 };
@@ -110,61 +110,6 @@ function ChamadoMenu({ pos, resolved, onClose, onOpen, onResolve, onReopen, onDe
         <button className="mm-item danger" onClick={onDelete}>{Icon.trash({ style: { width: 15, height: 15 } })} Excluir</button>
       </div>
     </>
-  );
-}
-
-/* ---- New chamado modal ---- */
-function NewChamadoModal({ onClose, onCreate }: {
-  onClose: () => void; onCreate: (v: { subject: string; campaign: string; body: string }) => void;
-}) {
-  const [subject, setSubject] = useState("");
-  const [campaign, setCampaign] = useState("");
-  const [body, setBody] = useState("");
-  const ready = subject.trim().length > 0 && body.trim().length > 0;
-  const submit = () => {
-    if (!ready) return;
-    onCreate({ subject: subject.trim(), campaign, body: body.trim() });
-  };
-  return (
-    <div className="md-scrim anim-in" onClick={onClose}>
-      <div className="md-box wide anim-up" onClick={(e) => e.stopPropagation()}>
-        <div className="md-head">
-          <div>
-            <h3 className="md-title">Novo chamado</h3>
-            <p className="md-sub">Descreva sua solicitação para a equipe Fuzzr.</p>
-          </div>
-          <button className="icon-btn" onClick={onClose}>{Icon.close()}</button>
-        </div>
-        <div className="md-body">
-          <div className="tr-form-row">
-            <label className="tr-form-label">Assunto</label>
-            <input className="field" value={subject} autoFocus
-              placeholder="Ex.: Ruído de fundo no spot renderizado"
-              onChange={(e) => setSubject(e.target.value)} />
-          </div>
-          <div className="tr-form-row">
-            <label className="tr-form-label">Campanha <span className="ch-opt">(opcional)</span></label>
-            <div className="vp-control">
-              <select className="vp-select" value={campaign} onChange={(e) => setCampaign(e.target.value)}>
-                <option value="">Sem campanha</option>
-                {CAMPAIGNS.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <span className="vp-select-chev">{Icon.chevDown({ style: { width: 15, height: 15 } })}</span>
-            </div>
-          </div>
-          <div className="tr-form-row">
-            <label className="tr-form-label">Mensagem</label>
-            <textarea className="field ch-newmsg" rows={4} value={body}
-              placeholder="Explique o que você precisa com o máximo de detalhes…"
-              onChange={(e) => setBody(e.target.value)} />
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 22 }}>
-            <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-            <button className="btn btn-primary" disabled={!ready} onClick={submit}>{Icon.plus()} Abrir chamado</button>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -353,7 +298,7 @@ export function Chamados({ items: itemsProp, setItems: setItemsProp }: ChamadosP
       {open && <ChamadoChat chamado={open} onClose={() => setOpenId(null)}
         onReply={(body) => reply(open.id, body)}
         onChoose={(msgId, option) => choose(open.id, msgId, option)} />}
-      {creating && <NewChamadoModal onClose={() => setCreating(false)} onCreate={createChamado} />}
+      {creating && <ChamadoModal onClose={() => setCreating(false)} onSubmit={createChamado} />}
       {toast && <div className="sp-toast anim-up">{Icon.check({ style: { width: 16, height: 16 } })} {toast}</div>}
     </div>
   );

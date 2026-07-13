@@ -1,22 +1,12 @@
 /* ============================================================
    AMPLI — Chamados (suporte / help desk)
-   Modal "Abrir chamado" + variação "Chat de Chamado" do Ampl.IA
-   (mesmo esqueleto visual, mas usando a cor primária do app).
+   Janela "Chat de Chamado" (variação do Ampl.IA usando a cor
+   primária do app). O modal de abertura é o ChamadoModal padrão.
    ============================================================ */
 
 /* botão "Preciso de ajuda" no footer do Editor de Áudio Unitário
    (mesma exibição do footer do Editor de Lote — .be-footer .be-help-btn) */
 .ss-footer .be-help-btn { margin-left: 14px; }
-
-/* ---------- Modal: Abrir chamado ---------- */
-/* acima da janela do Chat de Chamado (.ai-win z-index 521) */
-.ck-modal-scrim { z-index: 560; }
-.ck-modal .md-sub { font-style: normal; color: var(--cream-dim); font-weight: 600; }
-.ck-modal-textarea {
-  width: 100%; height: auto; min-height: 116px; resize: vertical;
-  padding: 13px 15px; line-height: 1.55; font-size: 14.5px; font-family: var(--display);
-}
-.ck-modal-foot { display: flex; justify-content: flex-end; margin-top: 20px; }
 
 /* ---------- Identity badge (balão de mensagem na cor primária) ---------- */
 .ck-badge {

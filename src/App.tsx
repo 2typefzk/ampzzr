@@ -12,7 +12,7 @@ import { Chamados } from "./screens/Chamados";
 import { Campaigns, CampaignDetail, CampaignModal } from "./screens/Campaigns";
 import { Settings } from "./screens/Settings";
 import { CreateFlow, type ImportKind } from "./screens/create-flow/CreateFlow";
-import { HelpTicketModal, ChamadoChat, createChamado } from "./components/Chamados";
+import { ChamadoModal, ChamadoChat, createChamado } from "./components/Chamados";
 import { nextProtocolo } from "./screens/Chamados";
 import { TRILHA_LIB, CAMPAIGN_LIB, CHAMADO_LIB } from "./data/mockData";
 import type { Campaign, Chamado, ChamadoMessage, ChamadoOption, HelpTarget, LibraryAudio, Trilha, TweakSettings } from "./types";
@@ -59,9 +59,9 @@ function App() {
   const [activeChamadoId, setActiveChamadoId] = useState<string | null>(null);
 
   const requestHelp = (target: HelpTarget) => setHelpTarget(target);
-  const submitHelp = (text: string) => {
+  const submitHelp = ({ subject, campaign, body }: { subject: string; campaign: string; body: string }) => {
     if (!helpTarget) return;
-    const ch = createChamado(helpTarget, text, USER_NAME, nextProtocolo(chamados));
+    const ch = createChamado({ subject, campaign, body, target: helpTarget, userName: USER_NAME, protocolo: nextProtocolo(chamados) });
     setChamados((list) => [ch, ...list]);
     setHelpTarget(null);
     setActiveChamadoId(ch.id);
@@ -176,7 +176,7 @@ function App() {
       {campaignModal && <CampaignModal campaign={"id" in campaignModal ? (campaignModal as Campaign) : null}
         onClose={() => setCampaignModal(null)} onSave={saveCampaign} />}
 
-      {helpTarget && <HelpTicketModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
+      {helpTarget && <ChamadoModal target={helpTarget} onClose={() => setHelpTarget(null)} onSubmit={submitHelp} />}
       {activeChamado && <ChamadoChat chamado={activeChamado}
         onClose={() => setActiveChamadoId(null)}
         onReply={(body) => replyChamado(activeChamado.id, body)}

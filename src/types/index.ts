@@ -104,6 +104,7 @@ export type ChamadoTargetKind = "audio" | "lote";
 export interface HelpTarget {
   kind: ChamadoTargetKind;
   title: string;
+  campaign?: string; // campanha associada ao Áudio/Lote, se houver
 }
 
 // Botões de auto-ajuda oferecidos numa mensagem do suporte.

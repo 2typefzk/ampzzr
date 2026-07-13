@@ -42,6 +42,12 @@ export function CreateFlow({ onClose, onComplete, onTrilhaUsed, onRequestHelp, s
 
   const railStep = step === 1 ? 1 : step <= 3 ? 2 : 3;
 
+  // Enriquece o alvo do "Preciso de ajuda" com a campanha do Áudio em edição,
+  // para que o chamado já venha com a campanha pré-selecionada.
+  const requestHelp = onRequestHelp
+    ? (target: HelpTarget) => onRequestHelp({ campaign: startAudio?.campaign, ...target })
+    : undefined;
+
   useEffect(() => {
     if (importKind === "batch-scratch") return;
     if (startAudio) {
@@ -184,7 +190,7 @@ export function CreateFlow({ onClose, onComplete, onTrilhaUsed, onRequestHelp, s
           showQuality={imported}
           onGenerate={() => setStep(4)}
           onBack={() => setStep(2)}
-          onRequestHelp={onRequestHelp}
+          onRequestHelp={requestHelp}
           onClose={onClose} />
       }
 
@@ -198,7 +204,7 @@ export function CreateFlow({ onClose, onComplete, onTrilhaUsed, onRequestHelp, s
           onFinish={() => onComplete({ title, model, trechos, trilha })} />
       }
 
-      {step === 9 && <BatchEdit onClose={onClose} onComplete={() => onComplete({ batch: true })} onRequestHelp={onRequestHelp} />}
+      {step === 9 && <BatchEdit onClose={onClose} onComplete={() => onComplete({ batch: true })} onRequestHelp={requestHelp} />}
 
       {processing && <ProcessingModal phase={processing} batch={importKind === "batch"} />}
     </div>);
