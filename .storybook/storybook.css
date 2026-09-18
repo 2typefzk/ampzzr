@@ -1,0 +1,9 @@
+/* Override for the Storybook canvas only — the real app locks body to
+   100vh/overflow:hidden because it owns the whole browser viewport; a story
+   is a fragment that needs to scroll and grow inside the preview iframe. */
+html,
+body {
+  height: auto !important;
+  min-height: 100%;
+  overflow: auto !important;
+}
